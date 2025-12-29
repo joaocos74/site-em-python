@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect, request, flash
 
 
 app = Flask(__name__)
@@ -20,6 +20,7 @@ def login():
     if nome == 'admin' and senha == '1234':
         return render_template('usuarios.html')   
     else:
+        flash('Usuário ou senha inválido!')
         
         return redirect('/')
 

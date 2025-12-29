@@ -1,36 +1,51 @@
 <!DOCTYPE html>
 <html lang="br">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>home</title>
-    <link rel="stylesheet" href="/static/css/home.css">
-    <link rel="stylesheet" href="/static/javaScript/home.js">
-</head>
-<div id="form_fundo">
-    <h1>LOGIN</h1>
-    <h2>Bem vindo!</h2>
-    <div id="img_login">
-        <img src="/static/img/Captura de tela 2025-12-29 133639.png" alt="login">
-    </div>
-    <div id="form_frente">
+    <link rel="stylesheet" href="/static/css/home.css" />
+    <link rel="stylesheet" href="/static/javaScript/home.js" />
+  </head>
+  <body>
+    <div id="form_fundo">
+      <h1>LOGIN</h1>
+      <h2>Bem vindo!</h2>
+      <div id="img_login">
+        <img
+          src="/static/img/Captura de tela 2025-12-29 133639.png"
+          alt="login"
+        />
+      </div>
+      <div id="form_frente">
         <form action="/login" id="login" method="post">
-            <label for="nome">Nome:</label>
-            <input type="text" name="nome" id="nome" required placeholder="Digite seu nome"><br><br>
-            <label for="senha" id="senha">Senha:</label>
-            <input type="password" name="senha" id="senha" required placeholder="Digite sua senha"><br><br>
-            <button type="submit" id="btn_login">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>ENTRAR
-            </button>
+          <label for="nome">Nome:</label>
+          <input
+            type="text"
+            name="nome"
+            id="nome"
+            required
+            placeholder="Digite seu nome"
+          /><br /><br />
+          <label for="senha" id="senha">Senha:</label>
+          <input
+            type="password"
+            name="senha"
+            id="senha"
+            required
+            placeholder="Digite sua senha"
+          /><br /><br />
+          <button type="submit" id="btn_login">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>ENTRAR
+          </button>
+                {% set mensagem = get_flashed_messages() %} {% if mensagem %}
+                <div class="flash-alerta">{{ mensagem[0] }}</div>
+                {% endif %}
         </form>
-
+      </div>
     </div>
-</div>
-
-</body>
-
+  </body>
 </html>
