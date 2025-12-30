@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>admin</title>
+    <link rel="stylesheet" href="/static/css/adm.css" />
+    <link rel="stylesheet" href="/static/javaScript/home.js" />
+  </head>
+  <body>
+    <div id="form_fundo">
+      <h1>CADASTRO</h1>
+      <h2>Adicione um novo usuário</h2>
+      <div id="img_login">
+        <img
+          src="/static/img/Captura de tela 2025-12-29 133639.png"
+          alt="login"
+        />
+      </div>
+      <div id="form_frente">
+        <form action="/cadastrarusuario" id="login" method="post">
+          <label for="nome">Nome:</label>
+          <input
+            type="text"
+            name="nome"
+            id="nome"
+            required
+            placeholder="Digite um nome"
+          /><br /><br />
+          <label for="senha" id="senha">Senha:</label>
+          <input
+            type="text"
+            name="senha"
+            id="senha"
+            required
+            placeholder="Digite uma senha"
+          /><br /><br />
+          <button type="submit" id="btn_login">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>Cadastrar
+          </button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
