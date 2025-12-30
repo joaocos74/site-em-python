@@ -1,0 +1,32 @@
+@charset "UTF-8";
+
+body {
+    font-family: 'Times New Roman', Times, serif;
+    background-color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+div#form_fundo {
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 50px;
+    margin: 30% auto;
+    width:  30% auto ;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align:center;
+}
+div#form_frente {
+    border-radius: 20px;
+    margin: 5px;
+}
+input:focus {
+    background-color: #cecece;
+}
+
+button:hover{
+    background-color: #8d8a8a;
+    border: 1px solid #757272;
+    border-radius: 5px;
+    font-size: 14px;    
+}
