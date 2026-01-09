@@ -1,34 +1,27 @@
 [
     {
-        "nome": "paula",
-        "senha": "15425"
+        "nome": "paula"
     },
     {
         "nome": "maria",
         "senha": "123"
     },
     {
-        "nome": "maria",
-        "senha": "123"
+        "nome": "maria"
     },
     {
-        "nome": "admin",
-        "senha": "123"
+        "nome": "admin"
     },
     {
-        "nome": "joao",
-        "senha": "abc"
+        "nome": "joao"
     },
     {
-        "nome": "joaquim",
-        "senha": "123"
+        "nome": "joaquim"
     },
     {
-        "nome": "ajo",
-        "senha": "jus"
+        "nome": "ajo"
     },
     {
-        "nome": "asda",
-        "senha": "asdas"
+        "nome": "asda"
     }
 ]
