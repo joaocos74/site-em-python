@@ -89,6 +89,13 @@ label {
     cursor: pointer;
 }
 
+div.mensagem-erro {
+    font-family: 'Segoe UI';
+    font-size: 12px;
+    color: red;
+}
+
+
 /* DIVISOR */
 .divider {
     display: flex;

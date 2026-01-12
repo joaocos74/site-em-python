@@ -1,173 +1,22 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <title>VISA Taióbeiras</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/static/css/home.css" />
-  </head>
-  <body>
-    <header class="topbar">
-      <h1>VISA TAIOBEIRAS</h1>
-      <nav>
-        <a href="#">HOME</a>
-        <a href="#">PESQUISAR</a>
-        <a href="#">MAPA</a>
-        <a href="#">ESTATÍSTICA</a>
-      </nav>
-    </header>
+    
+@app.route("/cadastrar", methods=['GET'])
+def cadastrar():
+    return render_template("login_adm.html")
 
-    <main class="container">
-      <section class="card">
-        <div class="card-header">
-          <img src="icon.png" alt="" />
-          <span>SECRETARIA MUNICIPAL DE SAÚDE DE TAIOBEIRAS</span>
-        </div>
+@app.route('/administrador', methods=['POST'])
+def administrador():
+    user = []
+    nome = request.form.get('cadastro')
+    user = [
+        {
+        "nome": nome
+        }
+    ]
+    with open('usuarios.json') as usarioscadastrados:
+        usuarios = json.load(usarioscadastrados)
+        
+    usuarioNovo = usuarios + user
 
-        <form class="form-grid">
-          <div>
-            <label>CNPJ:</label>
-            <input
-              type="text"
-              placeholder="Informe o CNPJ do estabelecimento"
-            />
-          </div>
-
-          <div>
-            <label>Número da Viabilidade:</label>
-            <input type="text" value="VIABILIDADE" />
-          </div>
-
-          <div>
-            <label>Situação:</label>
-            <select>
-              <option>EM ESTUDO</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Órgão:</label>
-            <input
-              type="text"
-              value="SECRETARIA MUNICIPAL DE SAÚDE DE TAIOBEIRAS"
-            />
-          </div>
-
-          <div>
-            <label>Grau de risco do estabelecimento:</label>
-            <select>
-              <option>SELECIONE</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Nome Empresarial:</label>
-            <input type="text" placeholder="NOME DO EMPREENDIMENTO" />
-          </div>
-
-          <div>
-            <label>Atividade Econômica:</label>
-            <input type="text" placeholder="CÓDIGO OU NOME DO CNAE" />
-          </div>
-
-          <div class="periodo">
-            <label>Data Início / Data Conclusão</label>
-            <div>
-              <input type="text" placeholder="INÍCIO DO PERÍODO" />
-              <input type="text" placeholder="FIM DO PERÍODO" />
-            </div>
-          </div>
-
-          <div>
-            <label>Município</label>
-            <select>
-              <option>TAIOBEIRAS</option>
-            </select>
-          </div>
-
-          <div>
-            <label>MEI?</label>
-            <select>
-              <option>SELECIONE</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Tipo Evento</label>
-            <select>
-              <option>SELECIONE</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Órgão de registro</label>
-            <select>
-              <option>SELECIONE</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Filial</label>
-            <select>
-              <option>SELECIONE</option>
-            </select>
-          </div>
-        </form>
-
-        <div class="actions">
-          <button class="btn-clear">Limpar</button>
-          <button class="btn-search">Pesquisar</button>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2>Licenciamentos encontrados:</h2>
-
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>CNPJ</th>
-                <th>Data Início</th>
-                <th>Data Conclusão</th>
-                <th>MEI</th>
-                <th>Nome da Empresa</th>
-                <th>Endereço</th>
-                <th>Situação</th>
-                <th>Analista</th>
-                <th>Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>57.117.672/0001-07</td>
-                <td>04/09/2024</td>
-                <td></td>
-                <td>Sim</td>
-                <td>57.117.672 PALOMA MENDES FREITAS</td>
-                <td>RUA BOCAIUVA 413 VILA FORMOSA / TAIOBEIRAS</td>
-                <td>EM ESTUDO</td>
-                <td></td>
-                <td><button class="btn-analisar">Analisar</button></td>
-              </tr>
-
-              <tr>
-                <td>20.176.073/0001-46</td>
-                <td>14/07/2024</td>
-                <td></td>
-                <td>Sim</td>
-                <td>ZELIA CARDOSO COSTA</td>
-                <td>RUA BOM JARDIM 651 CENTRO / TAIOBEIRAS</td>
-                <td>EM ESTUDO</td>
-                <td></td>
-                <td><button class="btn-analisar">Analisar</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <button class="btn-back">← Voltar</button>
-    </main>
-  </body>
-</html>
+    with open('usuarios.json', 'w') as usuariosgravados:
+        json.dump(usuarioNovo, usuariosgravados, indent=3)
+    return redirect('/')

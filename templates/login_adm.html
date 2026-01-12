@@ -17,14 +17,29 @@
 
             <h2>Login Visa Taiobeiras</h2>
 
-            <label for="matricula">Matrícula</label>
+            <label for="cadastro">Matrícula</label>
 
-            <form action="/login" id="login" method="post">
+            <form action="/administrador" id="login" method="post">
                 <div class="input-row">
-                    <input type="text" id="matricula" name="matricula">
+                    <input type="text" id="cadastro" name="cadastro">
                     <button class="btn-entrar">Cadastrar</button>
                 </div>
             </form>
+            {% set mensagem = get_flashed_messages() %}
+            {% if mensagem %}
+                <div class="mensagem-erro">
+                    {{mensagem[0]}}
+                </div>
+            {% endif %}
+
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+
+            <form action="/login" id="login" method="post">
+                <button class="btn-cadastrar">Voltar</button>
+            </form>
+
 
         </div>
     </div>

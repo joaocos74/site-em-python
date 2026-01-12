@@ -59,7 +59,7 @@ body {
 }
 
 /* LOGIN */
-.navbar-login button {
+.navbar-login{
     background: #ffffff;
     border: 1px solid #ccc;
     padding: 6px 14px;
@@ -230,11 +230,6 @@ th {
     border: 1px solid #ccc;
     padding: 6px 12px;
     cursor: pointer;
-}
-
-div.mensagem-erro {
-    font-family: 'times new Roman';
-    font-size: 8px;
 }
 
 /* RESPONSIVO */
