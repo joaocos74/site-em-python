@@ -1,5 +1,6 @@
-from flask import Flask, render_template, redirect, request, flash
+from flask import Flask, render_template, redirect, request, flash, jsonify
 import json
+import mysql.connector
 
 
 app = Flask(__name__)
@@ -65,7 +66,103 @@ def abas():
     if logado == False:
         return render_template("login.html")
     
-    
+
+@app.route('/mapa', methods=['POST'])
+def mapa():
+    return render_template("mapa.html")
+
+def get_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="visaTaio@2026",
+        database="sytemvisataio"
+    )
+
+@app.route("/estabelecimentos")
+def estabelecimentos():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+    SELECT 
+        id,
+        nivel,
+        classe,
+        razao_social,
+        nome_fantasia,
+        endereco,
+        latitude,
+        longitude,
+        cnpj_ou_cpf,
+        cnae_principal,
+        numero_parecer_tecnico,
+        DATE_FORMAT(ultima_inspecao, '%Y-%m-%d') AS ultima_inspecao,
+        alvara,
+        vigi_risco,
+        observacoes
+    FROM cadastros
+    WHERE latitude IS NOT NULL
+      AND longitude IS NOT NULL
+    """)
+
+    dados = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(dados)
+
+@app.route("/pesquisar_estabelecimentos", methods=["GET"])
+def pesquisar_estabelecimentos():
+
+    campos = {
+        "id": "id",
+        "nivel": "nivel",
+        "classe": "classe",
+        "razao_social": "razao_social",
+        "nome_fantasia": "nome_fantasia",
+        "endereco": "endereco",
+        "cnpj_ou_cpf": "cnpj_ou_cpf",
+        "cnae": "cnae",
+        "numero_parecer_tecnico": "parecer",
+        "ultima_inspecao": "ultima_inspecao",
+        "alvara": "alvara",
+        "vigi_risco": "vigi_risco",
+        "observacoes": "observacoes",
+        "baixados": "baixados",
+        "excluidos": "excluidos"
+    }
+
+    filtros = []
+    valores = []
+
+    for campo_html, campo_db in campos.items():
+        valor = request.args.get(campo_html)
+        if valor:
+            filtros.append(f"{campo_db} LIKE %s")
+            valores.append(f"%{valor}%")
+
+    sql = "SELECT * FROM cadastros"
+
+    if filtros:
+        sql += " WHERE " + " AND ".join(filtros)
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(sql, valores)
+
+    resultados = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template(
+        "abas.html",
+        resultados=resultados
+    )
+
+
 if __name__ == "__main__":
     app.run(debug=True)
     

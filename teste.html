@@ -1,22 +1,448 @@
-    
-@app.route("/cadastrar", methods=['GET'])
-def cadastrar():
-    return render_template("login_adm.html")
+<!DOCTYPE html>
+<html lang="pt-BR">
 
-@app.route('/administrador', methods=['POST'])
-def administrador():
-    user = []
-    nome = request.form.get('cadastro')
-    user = [
-        {
-        "nome": nome
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisa de Licenciamentos - VISA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-    ]
-    with open('usuarios.json') as usarioscadastrados:
-        usuarios = json.load(usarioscadastrados)
-        
-    usuarioNovo = usuarios + user
 
-    with open('usuarios.json', 'w') as usuariosgravados:
-        json.dump(usuarioNovo, usuariosgravados, indent=3)
-    return redirect('/')
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        /* Botões de Ação Principais */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        /* Filtros */
+        .search-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .search-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .search-grid input,
+        .search-grid select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .search-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-search {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-clear {
+            background: #f0f0f0;
+            color: #333;
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
+        }
+
+        /* Tabela */
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .results-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: #f9f9f9;
+            border-bottom: 2px solid #667eea;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        /* Ações na Tabela */
+        .action-cell {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit {
+            background: #3498db;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-edit:hover {
+            background: #2980b9;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        /* Mensagens */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .table-container {
+                font-size: 12px;
+            }
+
+            th,
+            td {
+                padding: 10px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-buttons {
+                flex-direction: column;
+            }
+
+            .btn-search,
+            .btn-clear {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Gerenciamento de Licenciamentos</h1>
+            <p>SECRETARIA MUNICIPAL DE SAÚDE DE TAIOBEIRAS</p>
+        </div>
+
+        <div class="content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <!-- Botões de Ação -->
+            <div class="action-buttons">
+                <a href="/novo_cadastro" class="btn btn-primary">
+                    ➕ Novo Cadastro
+                </a>
+            </div>
+
+            <!-- Seção de Busca/Filtros -->
+            <div class="search-section">
+                <div class="search-title">🔍 Pesquisar Licenciamentos</div>
+                <form method="GET" action="/pesquisar_estabelecimentos">
+                    <div class="search-grid">
+                        <input type="text" name="id" placeholder="ID" value="{{ request.args.get('id', '') }}">
+                        <input type="text" name="razao_social" placeholder="Razão Social"
+                            value="{{ request.args.get('razao_social', '') }}">
+                        <input type="text" name="nome_fantasia" placeholder="Nome Fantasia"
+                            value="{{ request.args.get('nome_fantasia', '') }}">
+                        <input type="text" name="cnpj_cpf" placeholder="CNPJ/CPF"
+                            value="{{ request.args.get('cnpj_cpf', '') }}">
+                        <input type="text" name="endereco" placeholder="Endereço"
+                            value="{{ request.args.get('endereco', '') }}">
+                        <select name="nivel">
+                            <option value="">Todos os Níveis</option>
+                            <option value="1" {% if request.args.get('nivel')=='1' %}selected{% endif %}>Nível 1
+                            </option>
+                            <option value="2" {% if request.args.get('nivel')=='2' %}selected{% endif %}>Nível 2
+                            </option>
+                            <option value="3" {% if request.args.get('nivel')=='3' %}selected{% endif %}>Nível 3
+                            </option>
+                        </select>
+                        <select name="classe">
+                            <option value="">Todas as Classes</option>
+                            <option value="A" {% if request.args.get('classe')=='A' %}selected{% endif %}>Classe A
+                            </option>
+                            <option value="B" {% if request.args.get('classe')=='B' %}selected{% endif %}>Classe B
+                            </option>
+                            <option value="C" {% if request.args.get('classe')=='C' %}selected{% endif %}>Classe C
+                            </option>
+                        </select>
+                        <select name="vigi_risco">
+                            <option value="">Todos os Riscos</option>
+                            <option value="Baixo" {% if request.args.get('vigi_risco')=='Baixo' %}selected{% endif %}>
+                                Baixo</option>
+                            <option value="Médio" {% if request.args.get('vigi_risco')=='Médio' %}selected{% endif %}>
+                                Médio</option>
+                            <option value="Alto" {% if request.args.get('vigi_risco')=='Alto' %}selected{% endif %}>Alto
+                            </option>
+                        </select>
+                    </div>
+                    <div class="search-buttons">
+                        <a href="/pesquisar_estabelecimentos" class="btn-clear">🔄 Limpar</a>
+                        <button type="submit" class="btn-search">🔎 Pesquisar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabela de Resultados -->
+            <div class="results-section">
+                <div class="results-title">📊 Licenciamentos encontrados:</div>
+                {% if resultados and resultados|length > 0 %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Razão Social</th>
+                                <th>Nome Fantasia</th>
+                                <th>CNPJ/CPF</th>
+                                <th>Endereço</th>
+                                <th>Nível</th>
+                                <th>Classe</th>
+                                <th>Risco</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for e in resultados %}
+                            <tr>
+                                <td><strong>{{ e.id }}</strong></td>
+                                <td>{{ e.razao_social }}</td>
+                                <td>{{ e.nome_fantasia or '-' }}</td>
+                                <td>{{ e.cnpj_ou_cpf }}</td>
+                                <td>{{ e.endereco }}</td>
+                                <td>{{ e.nivel }}</td>
+                                <td>{{ e.classe }}</td>
+                                <td>
+                                    {% if e.vigi_risco == 'Alto' %}
+                                    <span
+                                        style="background: #e74c3c; color: white; padding: 4px 8px; border-radius: 3px;">{{
+                                        e.vigi_risco }}</span>
+                                    {% elif e.vigi_risco == 'Médio' %}
+                                    <span
+                                        style="background: #f39c12; color: white; padding: 4px 8px; border-radius: 3px;">{{
+                                        e.vigi_risco }}</span>
+                                    {% else %}
+                                    <span
+                                        style="background: #27ae60; color: white; padding: 4px 8px; border-radius: 3px;">{{
+                                        e.vigi_risco or '-' }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="action-cell">
+                                        <a href="/editar_estabelecimento/{{ e.id }}" class="btn-edit">✏️ Editar</a>
+                                        <form method="POST" action="/deletar_estabelecimento/{{ e.id }}"
+                                            style="display: inline;"
+                                            onsubmit="return confirm('Deseja realmente deletar este cadastro?');">
+                                            <button type="submit" class="btn-delete">🗑️ Deletar</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="no-results">
+                    ℹ️ Nenhum registro encontrado com os filtros selecionados.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

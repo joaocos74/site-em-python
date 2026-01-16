@@ -10,7 +10,10 @@
     <header class="navbar">
       <div class="navbar-top">
         <div class="navbar-logo">
-          <img src="static\img\logo.png" alt="Vigilância Sanitária Taióbeiras" />
+          <img
+            src="static\img\logo.png"
+            alt="Vigilância Sanitária Taióbeiras"
+          />
         </div>
 
         <div class="navbar-search">
@@ -18,16 +21,17 @@
           <button>🔍</button>
         </div>
 
-            <form action="/login" id="login" method="post">
-                <button class="navbar-login">Login</button>
-            </form>
+        <form action="/login" id="login" method="post">
+          <button class="navbar-login">Login</button>
+        </form>
       </div>
 
       <nav class="navbar-menu">
-        <a href="#">
-          <span class="icon">🏠</span>
-          <span>PRINCIPAL</span>
-        </a>
+        <form action="/mapa" id="mapa" method="post">
+          <button class="icon">🏠</button>
+          <span>MAPA</span>
+        </form>
+
         <a href="#">
           <span class="icon">🔍</span>
           <span>TRANSPARÊNCIA</span>
@@ -58,93 +62,43 @@
           <span>SECRETARIA MUNICIPAL DE SAÚDE DE TAIOBEIRAS</span>
         </div>
 
-        <form class="form-grid">
-          <div>
-            <label>CNPJ:</label>
-            <input
-              type="text"
-              placeholder="Informe o CNPJ do estabelecimento"
-            />
-          </div>
+        <form
+          action="/pesquisar_estabelecimentos"
+          method="get"
+          class="form-grid"
+        >
+          <input name="id" placeholder="ID" />
 
-          <div>
-            <label>Número da Viabilidade:</label>
-            <input type="text" value="VIABILIDADE" />
-          </div>
+          <input name="nivel" placeholder="nivel" />
 
-          <div>
-            <label>Situação:</label>
-            <select>
-              <option>EM ESTUDO</option>
-            </select>
-          </div>
+          <input name="classe" placeholder="classe" />
 
-          <div>
-            <label>Órgão:</label>
-            <input
-              type="text"
-              value="SECRETARIA MUNICIPAL DE SAÚDE DE TAIOBEIRAS"
-            />
-          </div>
+          <input name="razao_social" placeholder="RAZÃO SOCIAL" />
+          <input name="nome_fantasia" placeholder="NOME FANTASIA" />
+          <input name="endereco" placeholder="ENDEREÇO" />
+          <input name="cnpj_ou_cpf" placeholder="CNPJ / CPF" />
+          <input name="cnae" placeholder="CNAE" />
+          <input name="numero_parecer_tecnico" placeholder="PARECER TÉCNICO" />
+          <input name="ultima_inspecao" placeholder="ÚLTIMA INSPEÇÃO" />
+          <input name="alvara" placeholder="ALVARÁ" />
+          <input name="vigi_risco" placeholder="VIGI-RISCO" />
+          <input name="observacoes" placeholder="OBSERVAÇÕES" />
 
-          <div>
-            <label>Grau de risco do estabelecimento:</label>
-            <select>
-              <option>SELECIONE</option>
-            </select>
-          </div>
+          <select name="baixados">
+            <option value="">BAIXADOS</option>
+            <option value="SIM">SIM</option>
+            <option value="NAO">NÃO</option>
+          </select>
 
-          <div>
-            <label>Nome Empresarial:</label>
-            <input type="text" placeholder="NOME DO EMPREENDIMENTO" />
-          </div>
+          <select name="excluidos">
+            <option value="">EXCLUÍDOS</option>
+            <option value="SIM">SIM</option>
+            <option value="NAO">NÃO</option>
+          </select>
 
-          <div>
-            <label>Atividade Econômica:</label>
-            <input type="text" placeholder="CÓDIGO OU NOME DO CNAE" />
-          </div>
-
-          <div class="periodo">
-            <label>Data Início / Data Conclusão</label>
-            <div>
-              <input type="text" placeholder="INÍCIO DO PERÍODO" />
-              <input type="text" placeholder="FIM DO PERÍODO" />
-            </div>
-          </div>
-
-          <div>
-            <label>Município</label>
-            <select>
-              <option>TAIOBEIRAS</option>
-            </select>
-          </div>
-
-          <div>
-            <label>MEI?</label>
-            <select>
-              <option>SELECIONE</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Tipo Evento</label>
-            <select>
-              <option>SELECIONE</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Órgão de registro</label>
-            <select>
-              <option>SELECIONE</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Filial</label>
-            <select>
-              <option>SELECIONE</option>
-            </select>
+          <div class="actions">
+            <button type="reset">Limpar</button>
+            <button type="submit" class="btn-search">Pesquisar</button>
           </div>
         </form>
 
@@ -161,42 +115,37 @@
           <table>
             <thead>
               <tr>
+                <th>ID</th>
+                <th>Nível</th>
+                <th>Nome Fantasia</th>
                 <th>CNPJ</th>
-                <th>Data Início</th>
-                <th>Data Conclusão</th>
-                <th>MEI</th>
-                <th>Nome da Empresa</th>
                 <th>Endereço</th>
-                <th>Situação</th>
-                <th>Analista</th>
-                <th>Ação</th>
+                <th>Última Inspeção</th>
               </tr>
             </thead>
-            <tbody>
+          <tbody>
+            {% if resultados %}
+              {% for e in resultados %}
               <tr>
-                <td>57.117.672/0001-07</td>
-                <td>04/09/2024</td>
-                <td></td>
-                <td>Sim</td>
-                <td>57.117.672 PALOMA MENDES FREITAS</td>
-                <td>RUA BOCAIUVA 413 VILA FORMOSA / TAIOBEIRAS</td>
-                <td>EM ESTUDO</td>
-                <td></td>
-                <td><button class="btn-analisar">Analisar</button></td>
+                <td>{{ e.id }}</td>
+                <td>{{ e.nivel }}</td>
+                <td>{{ e.nome_fantasia }}</td>
+                <td>{{ e.cnpj_ou_cpf }}</td>
+                <td>{{ e.endereco }}</td>
+                <td>{{ e.ultima_inspecao }}</td>
               </tr>
-
+              {% endfor %}
+            {% else %}
               <tr>
-                <td>20.176.073/0001-46</td>
-                <td>14/07/2024</td>
-                <td></td>
-                <td>Sim</td>
-                <td>ZELIA CARDOSO COSTA</td>
-                <td>RUA BOM JARDIM 651 CENTRO / TAIOBEIRAS</td>
-                <td>EM ESTUDO</td>
-                <td></td>
-                <td><button class="btn-analisar">Analisar</button></td>
+                <td colspan="8" style="text-align:center;">
+                  Nenhum registro encontrado
+                </td>
               </tr>
-            </tbody>
+               
+                <td><button class="btn-analisar">Analisar</button></td>
+                </tr>
+            {% endif %}
+          </tbody>
           </table>
         </div>
       </section>
