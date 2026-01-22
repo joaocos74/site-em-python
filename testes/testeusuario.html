@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Licenciamento - Analisar / Editar</title>
-    <link rel="stylesheet" href="/static/css/usuarios.css">
+    <link rel="stylesheet" href="/testes/">
 </head>
 <body>
 <header class="page-header">
@@ -12,7 +12,7 @@
         <h1>SECRETARIA MUNICIPAL DE SAÚDE DE TAIOBEIRAS</h1>
     </div>
     <div class="page-header__actions">
-        <a href="/templates/abas.html" class="btn btn-secondary">Voltar</a>
+        <a href="{{ url_for('licencas') }}" class="btn btn-secondary">Voltar</a>
         <button type="button" class="btn btn-secondary" onclick="window.print()">PDF</button>
         <button type="submit" form="form-editar" class="btn btn-primary">Salvar</button>
     </div>
@@ -27,9 +27,9 @@
             <div class="card__body">
                 <div class="form-grid-2">
                     <div class="form-group form-group--full">
-                        <label for="razao_social">Nome Empresarial</label>
-                        <input type="text" id="razao_social" name="razao_social"
-                               value="{{ licenca.razao_social or '' }}">
+                        <label for="nome_empresarial">Nome Empresarial</label>
+                        <input type="text" id="nome_empresarial" name="nome_empresarial"
+                               value="{{ licenca.nome_empresa or '' }}">
                     </div>
 
                     <div class="form-group form-group--full">
@@ -127,6 +127,6 @@
     </form>
 </main>
 
-<script src="/static/js/usuarios.js"></script>
+<script src="{{ url_for('static', filename='js/licenciamento_editar.js') }}"></script>
 </body>
 </html>
