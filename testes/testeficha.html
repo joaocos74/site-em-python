@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Licenciamento - Detalhes</title>
+    <link rel="stylesheet" href="/testes/testedetalhe.css">
+</head>
+<body>
+<header class="page-header">
+    <div class="page-header__brand">
+        <span class="brand__logo"></span>
+        <div class="brand__text">
+            <span class="brand__title">REDE SIM MG</span>
+            <span class="brand__subtitle">Licenciamento</span>
+        </div>
+    </div>
+    <div class="page-header__actions">
+        <button class="btn btn-secondary" onclick="window.history.back()">Voltar</button>
+        <button class="btn btn-secondary">Imprimir</button>
+        <button class="btn btn-primary">Salvar</button>
+    </div>
+</header>
+
+<main class="page-content">
+
+    <section class="card card--section">
+        <header class="card__header">
+            <h2>Dados do Empreendimento</h2>
+            <button class="card__toggle" type="button" data-target="#sec-dados-empreendimento">▾</button>
+        </header>
+
+        <div class="card__body" id="sec-dados-empreendimento">
+            <div class="form-grid">
+
+                <div class="form-group full">
+                    <label for="razao_social">Nome Empresarial</label>
+                    <input type="text" value="{{ licenca.razao_social }}" readonly>
+                </div>
+
+                <div class="form-group full">
+                    <label>Nome Fantasia</label>
+                    <input type="text" value="{{ licenca.nome_fantasia }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>CNPJ</label>
+                    <input type="text" value="{{ licenca.cnpj_ou_cpf }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for>CNAE Principal</label>
+                    <input type="text" value="{{ licenca.cnae }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Telefone</label>
+                    <input type="text" value="{{ licenca.telefone or '' }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Parecer técnico</label>
+                    <input type="text" value="{{ licenca.numero_parecer_tecnico }}" readonly>
+                </div>
+                <div class="form-group date-group">
+                    <label>Última Inspeção</label>
+                    <input type="date" value="{{ licenca.ultima_inspecao }}" readonly>
+                </div>
+
+                <div class="form-group date-group">
+                    <label>Vigi-Risco</label>
+                    <input type="date" value="{{ licenca.vigi_risco }}" readonly>
+                </div>
+
+                <div class="form-group date-group">
+                    <label>Alvará</label>
+                    <input type="date" value="{{ licenca.alvara }}" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>Fiscal Responsavel</label>
+                    <input type="number" value="{{ licenca.fiscal_responsavel }}" readonly>
+                </div>
+
+               
+                <div class="form-group full">
+                    <label>Descrição</label>
+                    <textarea rows="3" readonly>{{ licenca.descricao or '' }}</textarea>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card card--section">
+        <header class="card__header">
+            <h2>Tipo Unidade das Pessoas Atendidas</h2>
+            <button class="card__toggle" type="button" data-target="#sec-tipo-unidade">▾</button>
+        </header>
+        <div class="card__body" id="sec-tipo-unidade">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Código</label>
+                    <input type="text" value="{{ licenca.codigo_tipo_unidade or '' }}" readonly>
+                </div>
+                <div class="form-group full">
+                    <label>Descrição</label>
+                    <input type="text" value="{{ licenca.descricao_tipo_unidade or '' }}" readonly>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card card--section">
+        <header class="card__header">
+            <h2>Endereço do Empreendimento</h2>
+            <button class="card__toggle" type="button" data-target="#sec-endereco">▾</button>
+        </header>
+        <div class="card__body" id="sec-endereco">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Logradouro</label>
+                    <input type="text" value="{{ licenca.logradouro }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Número</label>
+                    <input type="text" value="{{ licenca.numero or '' }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Complemento</label>
+                    <input type="text" value="{{ licenca.complemento or '' }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Bairro</label>
+                    <input type="text" value="{{ licenca.bairro or '' }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Município</label>
+                    <input type="text" value="{{ licenca.municipio }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>UF</label>
+                    <input type="text" value="{{ licenca.uf or 'MG' }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>CEP</label>
+                    <input type="text" value="{{ licenca.cep or '' }}" readonly>
+                </div>
+                <div class="form-group full">
+                    <label>Ponto de referência</label>
+                    <input type="text" value="{{ licenca.referencia or '' }}" readonly>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card card--section">
+        <header class="card__header">
+            <h2>Atividades Econômicas</h2>
+            <button class="card__toggle" type="button" data-target="#sec-atividades">▾</button>
+        </header>
+        <div class="card__body" id="sec-atividades">
+            {% if licenca.atividades and licenca.atividades|length > 0 %}
+            <div class="table-wrapper">
+                <table class="results-table">
+                    <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>CNAE</th>
+                        <th>Descrição</th>
+                        <th>Grau de risco</th>
+                        <th>Situação</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for atv in licenca.atividades %}
+                        <tr>
+                            <td>{{ atv.tipo }}</td>
+                            <td>{{ atv.cnae }}</td>
+                            <td>{{ atv.descricao }}</td>
+                            <td>{{ atv.grau_risco }}</td>
+                            <td>{{ atv.situacao }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p class="no-results">Nenhuma atividade econômica cadastrada.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="card card--section">
+        <header class="card__header">
+            <h2>Arquivos do Licenciamento</h2>
+            <button class="card__toggle" type="button" data-target="#sec-arquivos">▾</button>
+        </header>
+        <div class="card__body" id="sec-arquivos">
+            {% if licenca.arquivos and licenca.arquivos|length > 0 %}
+            <div class="table-wrapper">
+                <table class="results-table">
+                    <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Tipo</th>
+                        <th>Enviado em</th>
+                        <th>Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for arq in licenca.arquivos %}
+                        <tr>
+                            <td>{{ arq.nome }}</td>
+                            <td>{{ arq.tipo }}</td>
+                            <td>{{ arq.data_envio }}</td>
+                            <td>
+                                <a class="btn btn-sm btn-secondary"
+                                   href="{{ url_for('download_arquivo', arquivo_id=arq.id) }}">Download</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p class="no-results">Nenhum arquivo anexado.</p>
+            {% endif %}
+
+            <div class="footer-actions">
+                <button class="btn btn-secondary">Adicionar anexo</button>
+                <button class="btn btn-secondary">Imprimir licença</button>
+                <button class="btn btn-secondary">Gerar documento</button>
+                <button class="btn btn-primary">Finalizar</button>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<script src="{{ url_for('static', filename='js/licenciamento_detalhe.js') }}"></script>
+</body>
+</html>

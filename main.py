@@ -131,7 +131,8 @@ def pesquisar_estabelecimentos():
         "vigi_risco": "vigi_risco",
         "observacoes": "observacoes",
         "baixados": "baixados",
-        "excluidos": "excluidos"
+        "excluidos": "excluidos",
+        "fiscal_responsavel": "fiscal_responsavel"
     }
 
     filtros = []
@@ -152,15 +153,81 @@ def pesquisar_estabelecimentos():
     cursor = conn.cursor(dictionary=True)
     cursor.execute(sql, valores)
 
-    resultados = cursor.fetchall()
+    licencas = cursor.fetchall()
 
     cursor.close()
     conn.close()
 
     return render_template(
         "abas.html",
-        resultados=resultados
+        licencas=licencas
     )
+
+@app.route("/usuarios")
+def usuarios():
+    if logado == True:
+        return render_template("usuarios.html")
+    if logado == False:
+        return render_template("login.html")
+
+
+@app.route('/licencas/<int:licenca_id>/analisar', methods=['GET', 'POST'])
+def analisar_licenca(licenca_id: int):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    if request.method == 'POST':
+        # Atualiza campo específico
+        campo = request.form.get('campo')
+        valor = request.form.get('valor')
+        
+        if campo:
+            cursor.execute(f"""
+                UPDATE cadastros 
+                SET {campo} = %s 
+                WHERE id = %s
+            """, (valor, licenca_id))
+            conn.commit()
+            
+            cursor.close()
+            conn.close()
+            return jsonify({"success": True, "message": "Atualizado!"})
+        
+        cursor.close()
+        conn.close()
+        return jsonify({"success": False}), 400
+
+    # GET: busca dados completos
+    cursor.execute("""
+    SELECT 
+        id,
+        nivel,
+        classe,
+        razao_social,
+        nome_fantasia,
+        endereco,
+        latitude,
+        longitude,
+        cnpj_ou_cpf,
+        cnae_principal,
+        numero_parecer_tecnico,
+        DATE_FORMAT(ultima_inspecao, '%Y-%m-%d') AS ultima_inspecao,
+        alvara,
+        vigi_risco,
+        observacoes
+    FROM cadastros
+        WHERE id = %s
+    """, (licenca_id,))
+    
+    licenca = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+    if not licenca:
+        return "Licença não encontrada", 404
+
+    return render_template('usuarios.html', licenca=licenca)
+
 
 
 if __name__ == "__main__":
