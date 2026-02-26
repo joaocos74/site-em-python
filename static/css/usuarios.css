@@ -1,5 +1,17 @@
 @import url("/static/css/home.css");
 
+
+
+.info-header {
+    background: #f4f6f9;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+}
+
 :root {
     --primary-color: #005bba;
     --primary-dark: #00408a;
@@ -167,6 +179,60 @@ html, body {
 .btn-secondary:hover {
     background-color: #f5f5f5;
 }
+
+
+
+/* Subtítulo interno */
+.subsection-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Bloco de datas */
+.date-section {
+    background: #f9fbff;
+    border: 1px solid #dbe6f6;
+    border-radius: 6px;
+    padding: 14px;
+}
+
+/* Bloco fiscal */
+.fiscal-section {
+    background: #f6f9f6;
+    border: 1px solid #d8e6d8;
+    border-radius: 6px;
+    padding: 14px;
+}
+
+/* Grid interno */
+.date-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+/* Campo de data refinado */
+.date-grid input[type="date"] {
+    padding: 6px 8px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: #ffffff;
+    transition: 0.2s ease;
+}
+
+.date-grid input[type="date"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 91, 186, 0.12);
+}
+
+
+
+
 
 /* Responsivo */
 

@@ -4,7 +4,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
-// Ícones
+// =========================
+// ÍCONES
+// =========================
 const iconAzul = new L.Icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
@@ -23,39 +25,65 @@ const iconVerde = new L.Icon({
     shadowSize: [41, 41]
 });
 
+// =========================
+// BUSCA DADOS DO BACKEND
+// =========================
 fetch('/estabelecimentos')
     .then(response => response.json())
     .then(dados => {
 
-        console.log(dados); // DEBUG
+        console.log('Dados recebidos:', dados); // DEBUG
 
         dados.forEach(local => {
 
-            // Converte a data da última inspeção
+            // =========================
+            // TRATAMENTO DA DATA (DD/MM/YYYY)
+            // =========================
             let anoInspecao = null;
 
-            if (local.ultima_inspecao) {
-            anoInspecao = parseInt(local.ultima_inspecao.substring(0, 4));
+            if (local.ultima_inspecao && local.ultima_inspecao.includes('/')) {
+                const partes = local.ultima_inspecao.split('/');
+                anoInspecao = parseInt(partes[2]); // YYYY
             }
 
-            // Define cor do marcador
-            const icone = (anoInspecao === 2026) ? iconVerde : iconAzul;
+            // =========================
+            // DEFINE COR DO MARCADOR
+            // =========================
+            const icone = (anoInspecao === 2026)
+                ? iconVerde
+                : iconAzul;
 
-            // Texto da inspeção
+            // =========================
+            // TEXTO DA DATA
+            // =========================
             const ultimaInspecaoTexto = local.ultima_inspecao
                 ? local.ultima_inspecao
                 : 'Não informada';
 
-            // Conteúdo do popup usando OBSERVAÇÕES
+            // =========================
+            // POPUP
+            // =========================
             const popupConteudo = `
                 <strong>${local.nome_fantasia || 'Sem nome'}</strong><br>
                 Última inspeção: <b>${ultimaInspecaoTexto}</b><br>
-                Observações:<br>
+                <br>
+                <strong>Observações:</strong><br>
                 ${local.observacoes || 'Nenhuma observação'}
             `;
 
-            L.marker([local.latitude, local.longitude], { icon: icone })
+            // =========================
+            // MARCADOR
+            // =========================
+            if (local.latitude && local.longitude) {
+                L.marker(
+                    [parseFloat(local.latitude), parseFloat(local.longitude)],
+                    { icon: icone }
+                )
                 .addTo(map)
                 .bindPopup(popupConteudo);
+            }
         });
+    })
+    .catch(error => {
+        console.error('Erro ao carregar estabelecimentos:', error);
     });

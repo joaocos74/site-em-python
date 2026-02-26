@@ -1,120 +1,178 @@
-from flask import Flask, render_template, redirect, request, flash, jsonify
-import json
-import mysql.connector
-
+from flask import Flask, render_template, redirect, request, flash, jsonify, session
+import psycopg2
+import psycopg2.extras
+import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'joao paulo'
+app.config['SECRET_KEY'] = 'joao_paulo_seguro'
 
-logado = False
+# =========================
+# CONEXÃO POSTGRES
+# =========================
+def get_connection():
+    conn = psycopg2.connect(
+        host=os.getenv("DB_HOST", "aws-0-us-west-2.pooler.supabase.com"),
+        port=os.getenv("DB_PORT", 5432),
+        database=os.getenv("DB_NAME", "postgres"),
+        user=os.getenv("DB_USER", "postgres.bizolwxybpgrlbpvjzaq"),
+        password=os.getenv("DB_PASSWORD", "A6Y0bU1s3nb13YB1"),
+        sslmode="require"
+    )
+    return conn
 
+
+# =========================
+# LOGIN
+# =========================
 @app.route("/")
 def home():
     return render_template("login.html")
 
 
-@app.route('/login', methods=['POST'])
+@app.route("/login", methods=["POST"])
 def login():
+    matricula = request.form.get("matricula")
 
-    
-    nome = request.form.get('matricula')
-    
-    with open('usuarios.json') as usuarioscadastrados:
-        usuarios = json.load(usuarioscadastrados)
-        cont = 0
-        for usuario in usuarios:
-            cont += 1
-            if usuario['nome'] == nome:
-                return render_template('abas.html')
-            
-        if cont >= len(usuarios):
-            flash('Matrícula não cadastrada!')
-            return redirect('/')
+    if not matricula:
+        flash("Informe a matrícula.")
+        return redirect("/")
 
-    
-@app.route("/cadastrar", methods=['GET'])
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cur.execute("""
+        SELECT matricula, nome, nivel
+        FROM usuarios
+        WHERE matricula = %s
+    """, (matricula,))
+
+    usuario = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if not usuario:
+        flash("Matrícula não cadastrada.")
+        return redirect("/")
+
+    session["matricula"] = usuario["matricula"]
+    session["nome"] = usuario["nome"]
+    session["nivel"] = usuario["nivel"]
+
+    return redirect("/abas")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+# =========================
+# Administrador - CADASTRO DE USUÁRIOS
+# =========================
+
+
+@app.route("/cadastrar")
 def cadastrar():
-    return render_template("login_adm.html")
+    return render_template("cadastro.html")
 
-@app.route('/administrador', methods=['POST'])
+@app.route("/administrador", methods=["POST"])
 def administrador():
-    nome = request.form.get('cadastro')
-    
-    if not nome:
-        return redirect('/cadastrar')
-    
-    with open('usuarios.json', 'r', encoding='utf-8') as usarioscadastrados:
-        usuarios = json.load(usarioscadastrados)
-    
-    for usuario in usuarios:
-        if usuario['nome']. lower() == nome. lower():
-            flash('Matrícula já cadastrada!')
-            return redirect('/cadastrar')    
-    novo_usuario = {
-        'nome': nome
-    }
-    usuarios.append(novo_usuario)
-    with open('usuarios.json', 'w', encoding='utf-8') as usarioscadastrados:
-        json.dump(usuarios, usarioscadastrados, indent=3, ensure_ascii=False)
-        
-    return redirect('/')
 
+    matricula = request.form.get("matricula")
+    nome = request.form.get("nome")
+
+    if not matricula or not nome:
+        flash("Preencha todos os campos.")
+        return redirect("/cadastrar")
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # Verifica se já existe
+    cur.execute("""
+        SELECT matricula
+        FROM usuarios
+        WHERE matricula = %s
+    """, (matricula,))
+
+    if cur.fetchone():
+        cur.close()
+        conn.close()
+        flash("Matrícula já cadastrada!")
+        return redirect("/cadastrar")
+
+    # Nível padrão 2 (você pode alterar depois no banco)
+    cur.execute("""
+        INSERT INTO usuarios (matricula, nome, nivel)
+        VALUES (%s, %s, %s)
+    """, (matricula, nome, 2))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    flash("Usuário cadastrado com sucesso!")
+    return redirect("/")
+
+# =========================
+# ÁREA PRINCIPAL
+# =========================
 @app.route("/abas")
 def abas():
-    if logado == True:
-        return render_template("abas.html")
-    if logado == False:
-        return render_template("login.html")
-    
+    if "matricula" not in session:
+        return redirect("/")
+    return render_template("abas.html")
 
+
+# =========================
+# MAPA / LISTAGEM
+# =========================
 @app.route('/mapa', methods=['POST'])
 def mapa():
     return render_template("mapa.html")
 
-def get_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="visaTaio@2026",
-        database="sytemvisataio"
-    )
-
 @app.route("/estabelecimentos")
 def estabelecimentos():
+
+    if "matricula" not in session:
+        return redirect("/")
+
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    cursor.execute("""
-    SELECT 
-        id,
-        nivel,
-        classe,
-        razao_social,
-        nome_fantasia,
-        endereco,
-        latitude,
-        longitude,
-        cnpj_ou_cpf,
-        cnae_principal,
-        numero_parecer_tecnico,
-        DATE_FORMAT(ultima_inspecao, '%Y-%m-%d') AS ultima_inspecao,
-        alvara,
-        vigi_risco,
-        observacoes
-    FROM cadastros
-    WHERE latitude IS NOT NULL
-      AND longitude IS NOT NULL
-    """)
+    if session["nivel"] == 1:
+        # ADMIN
+        cur.execute("""
+            SELECT *
+            FROM public.cadastros
+            WHERE latitude IS NOT NULL
+              AND longitude IS NOT NULL
+        """)
+    else:
+        # USUÁRIO NORMAL
+        cur.execute("""
+            SELECT *
+            FROM public.cadastros
+            WHERE fiscal_matricula = %s
+              AND latitude IS NOT NULL
+              AND longitude IS NOT NULL
+        """, (session["matricula"],))
 
-    dados = cursor.fetchall()
-
-    cursor.close()
+    dados = cur.fetchall()
+    cur.close()
     conn.close()
 
     return jsonify(dados)
 
-@app.route("/pesquisar_estabelecimentos", methods=["GET"])
+
+# =========================
+# PESQUISA COM FILTRO SEGURO
+# =========================
+@app.route("/pesquisar_estabelecimentos")
 def pesquisar_estabelecimentos():
+
+    if "matricula" not in session:
+        return redirect("/")
 
     campos = {
         "id": "id",
@@ -124,15 +182,12 @@ def pesquisar_estabelecimentos():
         "nome_fantasia": "nome_fantasia",
         "endereco": "endereco",
         "cnpj_ou_cpf": "cnpj_ou_cpf",
-        "cnae": "cnae",
-        "numero_parecer_tecnico": "parecer",
+        "cnae": "cnae_principal",
+        "numero_parecer_tecnico": "numero_parecer_tecnico",
         "ultima_inspecao": "ultima_inspecao",
         "alvara": "alvara",
         "vigi_risco": "vigi_risco",
-        "observacoes": "observacoes",
-        "baixados": "baixados",
-        "excluidos": "excluidos",
-        "fiscal_responsavel": "fiscal_responsavel"
+        "observacoes": "observacoes"
     }
 
     filtros = []
@@ -140,96 +195,101 @@ def pesquisar_estabelecimentos():
 
     for campo_html, campo_db in campos.items():
         valor = request.args.get(campo_html)
-        if valor:
-            filtros.append(f"{campo_db} LIKE %s")
-            valores.append(f"%{valor}%")
 
-    sql = "SELECT * FROM cadastros"
+        if not valor:
+            continue
+
+        if campo_db == "ultima_inspecao":
+            filtros.append("TO_CHAR(ultima_inspecao, 'DD/MM/YYYY') ILIKE %s")
+        else:
+            filtros.append(f"{campo_db}::text ILIKE %s")
+
+        valores.append(f"%{valor}%")
+
+    sql = "SELECT * FROM public.cadastros WHERE 1=1"
+
+    # FILTRO POR MATRÍCULA
+    if session["nivel"] != 1:
+        sql += " AND fiscal_matricula = %s"
+        valores.append(session["matricula"])
 
     if filtros:
-        sql += " WHERE " + " AND ".join(filtros)
+        sql += " AND " + " AND ".join(filtros)
 
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(sql, valores)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(sql, valores)
 
-    licencas = cursor.fetchall()
-
-    cursor.close()
+    dados = cur.fetchall()
+    cur.close()
     conn.close()
 
-    return render_template(
-        "abas.html",
-        licencas=licencas
-    )
-
-@app.route("/usuarios")
-def usuarios():
-    if logado == True:
-        return render_template("usuarios.html")
-    if logado == False:
-        return render_template("login.html")
+    return render_template("abas.html", licencas=dados)
 
 
-@app.route('/licencas/<int:licenca_id>/analisar', methods=['GET', 'POST'])
-def analisar_licenca(licenca_id: int):
+# =========================
+# ANALISAR / EDITAR LICENÇA
+# =========================
+@app.route("/licencas/<int:licenca_id>/analisar", methods=["GET", "POST"])
+def analisar_licenca(licenca_id):
+
+    if "matricula" not in session:
+        return redirect("/")
+
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    if request.method == 'POST':
-        # Atualiza campo específico
-        campo = request.form.get('campo')
-        valor = request.form.get('valor')
-        
-        if campo:
-            cursor.execute(f"""
-                UPDATE cadastros 
-                SET {campo} = %s 
-                WHERE id = %s
-            """, (valor, licenca_id))
-            conn.commit()
-            
-            cursor.close()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # Verifica se usuário tem acesso
+    if session["nivel"] != 1:
+        cur.execute("""
+            SELECT id
+            FROM public.cadastros
+            WHERE id = %s
+              AND fiscal_matricula = %s
+        """, (licenca_id, session["matricula"]))
+
+        if not cur.fetchone():
+            cur.close()
             conn.close()
-            return jsonify({"success": True, "message": "Atualizado!"})
-        
-        cursor.close()
-        conn.close()
+            return "Acesso negado", 403
+
+    if request.method == "POST":
+        campo = request.form.get("campo")
+        valor = request.form.get("valor")
+
+        if campo:
+            cur.execute(
+                f"UPDATE public.cadastros SET {campo} = %s WHERE id = %s",
+                (valor, licenca_id)
+            )
+            conn.commit()
+            cur.close()
+            conn.close()
+            return jsonify({"success": True})
+
         return jsonify({"success": False}), 400
 
-    # GET: busca dados completos
-    cursor.execute("""
-    SELECT 
-        id,
-        nivel,
-        classe,
-        razao_social,
-        nome_fantasia,
-        endereco,
-        latitude,
-        longitude,
-        cnpj_ou_cpf,
-        cnae_principal,
-        numero_parecer_tecnico,
-        DATE_FORMAT(ultima_inspecao, '%Y-%m-%d') AS ultima_inspecao,
-        alvara,
-        vigi_risco,
-        observacoes
-    FROM cadastros
-        WHERE id = %s
-    """, (licenca_id,))
-    
-    licenca = cursor.fetchone()
-    cursor.close()
+    # GET
+    if session["nivel"] == 1:
+        cur.execute("SELECT * FROM public.cadastros WHERE id = %s", (licenca_id,))
+    else:
+        cur.execute("""
+            SELECT *
+            FROM public.cadastros
+            WHERE id = %s
+              AND fiscal_matricula = %s
+        """, (licenca_id, session["matricula"]))
+
+    licenca = cur.fetchone()
+    cur.close()
     conn.close()
-    
+
     if not licenca:
-        return "Licença não encontrada", 404
+        return "Registro não encontrado", 404
 
-    return render_template('usuarios.html', licenca=licenca)
+    return render_template("usuarios.html", licenca=licenca)
 
 
-
+# =========================
 if __name__ == "__main__":
     app.run(debug=True)
-    

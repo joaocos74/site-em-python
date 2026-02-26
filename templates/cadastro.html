@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro - Visa Taióbeiras</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/adm.css">
+</head>
+<body>
+
+    <div class="login-entorno">
+        <div class="login-cartao">
+
+            <div class="logo">
+                <img src="static/img/logo.png" alt="Vigilância Sanitária Taióbeiras">
+            </div>
+
+            <h2>Cadastrar Usuário</h2>
+
+            <form action="/administrador" method="post">
+
+                <label for="matricula">Matrícula</label>
+                <div class="input-row">
+                    <input type="text" id="matricula" name="matricula" required>
+                </div>
+
+                <label for="nome">Nome</label>
+                <div class="input-row">
+                    <input type="text" id="nome" name="nome" required>
+                </div>
+                            <div class="divider">
+                                <span></span>
+                            </div>
+
+                <button class="btn-cadastrar" type="submit">
+                    Cadastrar
+                </button>
+
+            </form>
+
+            {% set mensagem = get_flashed_messages() %}
+            {% if mensagem %}
+                <div class="mensagem-erro">
+                    {{ mensagem[0] }}
+                </div>
+            {% endif %}
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <form action="/" method="get">
+                <button class="btn-cadastrar">
+                    Voltar para Login
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+</body>
+</html>
