@@ -128,7 +128,7 @@ def abas():
 # =========================
 # MAPA / LISTAGEM
 # =========================
-@app.route('/mapa', methods=['POST'])
+@app.route('/mapa')
 def mapa():
     return render_template("mapa.html")
 
@@ -164,7 +164,6 @@ def estabelecimentos():
     conn.close()
 
     return jsonify(dados)
-
 
 # =========================
 # PESQUISA COM FILTRO SEGURO
