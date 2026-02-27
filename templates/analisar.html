@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Licenciamento - Analisar / Editar</title>
+    <link rel="stylesheet" href="/static/css/analisar.css">
+</head>
+
+<body>
+    <header class="page-header">
+        <div class="navbar-logo">
+            <img src="/static/img/logo.png" alt="" />
+        </div>
+        <div class="page-header__title">
+            <h1>VIGILÂNCIA SANITÁRIA DE TAIOBEIRAS</h1>
+        </div>
+        <div class="page-header__actions">
+            <a href="{{ url_for('abas') }}" class="btn btn-secondary">Voltar</a>
+            <button type="button" class="btn btn-secondary" onclick="window.print()">Imprimir</button>
+            <button type="submit" form="form-editar" class="btn btn-primary">Salvar</button>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <form id="form-editar" method="POST">
+            <section class="card card--section">
+                <header class="card__header">
+                    <h2>Dados do Estabelecimento</h2>
+                    <div class="info-header">
+                        <p>ID: <strong>{{ licenca.id }}</strong></p>
+                        <p>Nome Fantasia: <strong>{{ licenca.nome_fantasia }}</strong></p>
+                    </div>
+
+                </header>
+                <div class="card__body">
+                    <div class="form-grid-2">
+                        <div class="form-group form-group--full">
+                            <label for="razao_social">Nome Empresarial</label>
+                            <input type="text" id="razao_social" name="razao_social"
+                                value="{{ licenca.razao_social or '' }}">
+                        </div>
+
+                        <div class="form-group form-group--full">
+                            <label for="nome_fantasia">Nome Fantasia</label>
+                            <input type="text" id="nome_fantasia" name="nome_fantasia"
+                                value="{{ licenca.nome_fantasia or '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="nivel">Nível</label>
+                            <input type="text" id="nivel" name="nivel" value="{{ licenca.nivel or '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="classe">Classe</label>
+                            <input type="text" id="classe" name="classe" value="{{ licenca.classe or '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cnpj_ou_cpf">CNPJ</label>
+                            <input type="text" id="cnpj_ou_cpf" name="cnpj_ou_cpf"
+                                value="{{ licenca.cnpj_ou_cpf or '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cnae_principal">CNAE Principal</label>
+                            <input type="text" id="cnae_principal" name="cnae_principal"
+                                value="{{ licenca.cnae_principal or '' }}">
+                        </div>
+
+
+                        <div class="form-group form-group--full">
+                            <div class="date-section">
+
+                                <div class="date-grid">
+                                    <div class="form-group">
+                                        <label for="ultima_inspecao">Última Inspeção</label>
+                                        <input type="date" id="ultima_inspecao" name="ultima_inspecao"
+                                            value="{{ licenca.ultima_inspecao or '' }}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="alvara">Alvará</label>
+                                        <input type="date" id="alvara" name="alvara" value="{{ licenca.alvara or '' }}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="vigi_risco">Vigi-Risco</label>
+                                        <input type="date" id="vigi_risco" name="vigi_risco"
+                                            value="{{ licenca.vigi_risco or '' }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group form-group--full">
+                            <label for="observacoes">Observações</label>
+                            <textarea id="observacoes" name="observacoes"
+                                rows="3">{{ licenca.observacoes or '' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card card--section">
+                <header class="card__header">
+                    <h2>Tipos Unidade e/ou Formas atuação</h2>
+                </header>
+                <div class="card__body">
+                    <div class="form-grid-2">
+                        <div class="form-group form-group--full">
+                            <div class="fiscal-section">
+
+                                <div class="date-grid">
+                                    <div class="form-group">
+                                        <label for="fiscal_responsavel">Fiscal Responsável</label>
+                                        <input type="text" id="fiscal_responsavel" name="fiscal_responsavel"
+                                            value="{{ licenca.fiscal_responsavel or '' }}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="fiscal_matricula">Matrícula</label>
+                                        <input type="text" id="fiscal_matricula" name="fiscal_matricula"
+                                            value="{{ licenca.fiscal_matricula or '' }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group form-group--full">
+                            <label for="descricao_unidade">Descrição</label>
+                            <input type="text" id="descricao_unidade" name="descricao_unidade"
+                                value="{{ licenca.descricao_unidade or '' }}">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Outras seções podem seguir o mesmo padrão, se precisar -->
+        </form>
+    </main>
+
+    <script src="/static/js/analisar.js"></script>
+</body>
+
+</html>

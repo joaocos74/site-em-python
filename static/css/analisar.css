@@ -1,6 +1,9 @@
 @import url("/static/css/home.css");
 
-
+/* LOGO */
+.navbar-logo img {
+    height: 60px;
+}
 
 .info-header {
     background: #f4f6f9;

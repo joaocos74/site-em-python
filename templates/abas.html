@@ -1,179 +1,191 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <title>VISA Taióbeiras</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/static/css/home.css" />
-    
-  </head>
-  <body>
+
+</head>
+
+<body>
     <header class="navbar">
-      <div class="navbar-top">
-        <div class="navbar-logo">
-          <img
-            src="static\img\logo.png"
-            alt="Vigilância Sanitária Taióbeiras"
-          />
+        <div class="navbar-top">
+            <div class="navbar-logo">
+                <img src="static\img\logo.png" alt="Vigilância Sanitária Taióbeiras" />
+            </div>
+
+            <div class="navbar-search">
+                <input type="text" placeholder="O que você procura?" />
+                <button>🔍</button>
+            </div>
+            <div class="navbar-user">
+                👤 {{ session.get('nome') }}
+            </div>
+
+
+            <form action="/login" id="login" method="post">
+                <button class="navbar-login">SAIR</button>
+            </form>
         </div>
 
-        <div class="navbar-search">
-          <input type="text" placeholder="O que você procura?" />
-          <button>🔍</button>
-        </div>
 
-        <form action="/login" id="login" method="post">
-          <button class="navbar-login">Login</button>
-        </form>
-      </div>
+        <nav class="navbar-menu">
 
-      <nav class="navbar-menu">
-        <form action="/mapa" id="mapa" method="post">
-          <button class="icon">🏠</button>
-          <span>MAPA</span>
-        </form>
+            <a href="{{ url_for('mapa') }}" class="navbar-link">
+                <span class="icon">🔍</span>
+                <span>MAPA</span>
+            </a>
 
-        <a href="#">
-          <span class="icon">🔍</span>
-          <span>TRANSPARÊNCIA</span>
-        </a>
-        <a href="#">
-          <span class="icon">📄</span>
-          <span>PUBLICAÇÕES</span>
-        </a>
-        <a href="#">
-          <span class="icon">🏛</span>
-          <span>A PREFEITURA</span>
-        </a>
-        <a href="#">
-          <span class="icon">🏙</span>
-          <span>A NOSSA CIDADE</span>
-        </a>
-        <a href="#">
-          <span class="icon">☰</span>
-          <span>SERVIÇOS</span>
-        </a>
-      </nav>
+            <a href="{{ url_for('novo_cadastro') }}" class="navbar-link">
+                <span class="icon">🏠</span>
+                <span>NOVO CADASTRO</span>
+            </a>
+
+            <a href="{{ url_for('mapa') }}" class="navbar-link">
+                <span class="icon">📄</span>
+                <span>PUBLICAÇÕES</span>
+            </a>
+
+            <a href="{{ url_for('mapa') }}" class="navbar-link">
+                <span class="icon">🏛</span>
+                <span>A PREFEITURA</span>
+            </a>
+
+            <a href="{{ url_for('mapa') }}" class="navbar-link">
+                <span class="icon">🏙</span>
+                <span>A NOSSA CIDADE</span>
+            </a>
+
+            <a href="{{ url_for('mapa') }}" class="navbar-link">
+                <span class="icon">☰</span>
+                <span>SERVIÇOS</span>
+            </a>
+
+        </nav>
     </header>
+    <main class="page-content">
 
-<main class="page-content">
+        <section class="card">
+            <form id="search-form" method="GET" action="/pesquisar_estabelecimentos">
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label for="id">ID</label>
+                        <input type="text" id="id" name="id" placeholder="ID" value="{{ request.args.get('id','') }}">
+                    </div>
 
-    <section class="card">
-        <form id="search-form" method="GET" action="/pesquisar_estabelecimentos">
-            <div class="form-grid-3">
-                <div class="form-group">
-                    <label for="id">ID</label>
-                    <input type="text" id="id" name="id"
-                           placeholder="ID"
-                           value="{{ request.args.get('id','') }}">
-                </div>
 
-                <div class="form-group">
-                    <label for="nivel">Nível</label>
-                    <input type="text" id="nivel" name="nivel"
-                           placeholder="Nível"
-                           value="{{ request.args.get('nivel','') }}">
-                </div>
+                    <div class="form-group">
+                        <label for="nivel">Nível</label>
+                        <select id="nivel" name="nivel">
+                            <option value="">Selecione</option>
+                            <option value="1" {% if request.args.get('nivel')=='1' %}selected{% endif %}>
+                                Nivel 1
+                            </option>
+                            <option value="2" {% if request.args.get('nivel')=='2' %}selected{% endif %}>
+                                Nivel 2
+                            </option>
+                            <option value="3" {% if request.args.get('nivel')=='3' %}selected{% endif %}>
+                                Nivel  3
+                            </option>
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label for="classe">Classe</label>
-                    <input type="text" id="classe" name="classe"
-                           placeholder="classe"
-                           value="{{ request.args.get('classe','') }}">
-                </div>
 
-                <div class="form-group form-group--full">
-                    <label for="nome_fantasia">Nome Fantasia</label>
-                    <input type="text" id="nome_fantasia" name="nome_fantasia"
-                           placeholder="Nome Fantasia"
-                           value="{{ request.args.get('nome_fantasia','') }}">
-                </div>
+                    <div class="form-group">
+                        <label for="classe">Classe</label>
+                        <input type="text" id="classe" name="classe" placeholder="classe"
+                            value="{{ request.args.get('classe','') }}">
+                    </div>
 
-                <div class="form-group">
-                    <label for="razao_social">Razão Social</label>
-                    <input type="text" id="razao_social" name="razao_social"
-                           placeholder="Razão Social"
-                           value="{{ request.args.get('razao_social','') }}">
-                </div>
+                    <div class="form-group form-group--full">
+                        <label for="nome_fantasia">Nome Fantasia</label>
+                        <input type="text" id="nome_fantasia" name="nome_fantasia" placeholder="Nome Fantasia"
+                            value="{{ request.args.get('nome_fantasia','') }}">
+                    </div>
 
-                <div class="form-group">
-                    <label for="endereco">Endereço</label>
-                    <input type="text" id="endereco" name="endereco"
-                           placeholder="Endereço"
-                           value="{{ request.args.get('endereco','') }}">
-                </div>
+                    <div class="form-group">
+                        <label for="razao_social">Razão Social</label>
+                        <input type="text" id="razao_social" name="razao_social" placeholder="Razão Social"
+                            value="{{ request.args.get('razao_social','') }}">
+                    </div>
 
-                <div class="form-group">
-                    <label for="cnpj_ou_cpf">CNPJ</label>
-                    <input type="text" id="cnpj_ou_cpf" name="cnpj_ou_cpf"
-                           placeholder="CNPJ ou CPF"
-                           value="{{ request.args.get('cnpj_ou_cpf','') }}">
-                </div>
+                    <div class="form-group">
+                        <label for="endereco">Endereço</label>
+                        <input type="text" id="endereco" name="endereco" placeholder="Endereço"
+                            value="{{ request.args.get('endereco','') }}">
+                    </div>
 
-                <div class="form-group date-group">
-                    <label for="ultima_inspecao">Inspeção</label>
-                    <div class="date-input-wrapper">
-                        <input type="date" id="ultima_inspecao" name="ultima_inspecao"
-                               value="{{ request.args.get('ultima_inspecao','') }}">
+                    <div class="form-group">
+                        <label for="cnpj_ou_cpf">CNPJ</label>
+                        <input type="text" id="cnpj_ou_cpf" name="cnpj_ou_cpf" placeholder="CNPJ ou CPF"
+                            value="{{ request.args.get('cnpj_ou_cpf','') }}">
+                    </div>
+
+                    <div class="form-group date-group">
+                        <label for="ultima_inspecao">Inspeção</label>
+                        <div class="date-input-wrapper">
+                            <input type="date" id="ultima_inspecao" name="ultima_inspecao"
+                                value="{{ request.args.get('ultima_inspecao','') }}">
+                        </div>
+                    </div>
+
+                    <div class="form-group date-group">
+                        <label for="vigi_risco">Vigi-Risco</label>
+                        <div class="date-input-wrapper">
+                            <input type="date" id="vigi_risco" name="vigi_risco"
+                                value="{{ request.args.get('vigi_risco','') }}">
+                        </div>
+                    </div>
+
+                    <div class="form-group date-group">
+                        <label for="alvara">Alvará</label>
+                        <div class="date-input-wrapper">
+                            <input type="date" id="alvara" name="alvara" value="{{ request.args.get('alvara','') }}">
+                        </div>
+                    </div>
+
+                    <div class="form-group form-group--full">
+                        <label for="fiscal_responsavel">Fiscal Responsável</label>
+                        <input type="text" id="fiscal_responsavel" name="fiscal_responsavel"
+                            placeholder="Fiscal Responsável" value="{{ request.args.get('fiscal_responsavel','') }}">
+                    </div>
+
+                    <div class="form-group form-group--full">
+                        <label for="observacoes">Observações</label>
+                        <input type="text" id="observacoes" name="observacoes" placeholder="Observações"
+                            value="{{ request.args.get('observacoes','') }}">
                     </div>
                 </div>
 
-                <div class="form-group date-group">
-                    <label for="vigi_risco">Vigi-Risco</label>
-                    <div class="date-input-wrapper">
-                        <input type="date" id="vigi_risco" name="vigi_risco"
-                               value="{{ request.args.get('vigi_risco','') }}">
-                    </div>
+                <div class="form-actions">
+                    <a href="{{ url_for('pesquisar_estabelecimentos') }}" class="btn btn-secondary">
+                        Limpar
+                    </a>
+                    <button type="submit" class="btn btn-primary">Pesquisar</button>
                 </div>
+            </form>
+        </section>
 
-                <div class="form-group date-group">
-                    <label for="alvara">Alvará</label>
-                    <div class="date-input-wrapper">
-                        <input type="date" id="alvara" name="alvara"
-                               value="{{ request.args.get('alvara','') }}">
-                    </div>
-                </div>
+        <section class="card card--results">
+            <h2>Estabelecimentos encontrados:</h2>
 
-                <div class="form-group form-group--full">
-                    <label for="fiscal_responsavel">Fiscal Responsável</label>
-                    <input type="text" id="fiscal_responsavel" name="fiscal_responsavel"
-                           placeholder="Fiscal Responsável"
-                           value="{{ request.args.get('fiscal_responsavel','') }}">
-                </div>
-
-                <div class="form-group form-group--full">
-                    <label for="observacoes">Observações</label>
-                    <input type="text" id="observacoes" name="observacoes"
-                           placeholder="Observações"
-                           value="{{ request.args.get('observacoes','') }}">
-                </div>
-            </div>
-
-            <div class="form-actions">
-                <button type="reset" class="btn btn-secondary" id="btn-limpar">Limpar</button>
-                <button type="submit" class="btn btn-primary">Pesquisar</button>
-            </div>
-        </form>
-    </section>
-
-    <section class="card card--results">
-        <h2>Licenciamentos encontrados:</h2>
-
-        {% if licencas and licencas|length > 0 %}
+            {% if licencas and licencas|length > 0 %}
             <div class="table-wrapper">
                 <table class="results-table">
                     <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nome Fantasia</th>
-                        <th>Última Inspeção</th>
-                        <th>Alvará</th>
-                        <th>Endereço</th>
-                        <th>Ação</th>
-                    </tr>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome Fantasia</th>
+                            <th>Última Inspeção</th>
+                            <th>Alvará</th>
+                            <th>Endereço</th>
+                            <th>Ação</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    {% for lic in licencas %}
+                        {% for lic in licencas %}
                         <tr>
                             <td>{{ lic.id }}</td>
                             <td>{{ lic.nome_fantasia }}</td>
@@ -182,20 +194,21 @@
                             <td>{{ lic.endereco }}</td>
                             <td>
                                 <a href="{{ url_for('analisar_licenca', licenca_id=lic.id) }}"
-                                   class="btn btn-sm btn-primary">Analisar</a>
+                                    class="btn btn-sm btn-primary">Analisar</a>
                             </td>
                         </tr>
-                    {% endfor %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
-        {% else %}
+            {% else %}
             <p class="no-results">Nenhum licenciamento encontrado para os filtros informados.</p>
-        {% endif %}
-    </section>
+            {% endif %}
+        </section>
 
-</main>
+    </main>
 
-<script src="/static/javaScript/home.js"></script>
+    <script src="/static/javaScript/home.js"></script>
 </body>
+
 </html>

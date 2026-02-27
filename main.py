@@ -1,4 +1,5 @@
 from flask import Flask, render_template, redirect, request, flash, jsonify, session
+from flask import request, redirect, url_for
 import psycopg2
 import psycopg2.extras
 import os
@@ -190,8 +191,16 @@ def pesquisar_estabelecimentos():
         "observacoes": "observacoes"
     }
 
-    filtros = []
+    sql = "SELECT * FROM public.cadastros WHERE 1=1"
     valores = []
+
+    # 🔹 PRIMEIRO aplica filtro por matrícula
+    if session["nivel"] != 1:
+        sql += " AND fiscal_matricula = %s"
+        valores.append(session["matricula"])
+
+    # 🔹 DEPOIS aplica filtros dinâmicos
+    filtros = []
 
     for campo_html, campo_db in campos.items():
         valor = request.args.get(campo_html)
@@ -199,19 +208,17 @@ def pesquisar_estabelecimentos():
         if not valor:
             continue
 
-        if campo_db == "ultima_inspecao":
-            filtros.append("TO_CHAR(ultima_inspecao, 'DD/MM/YYYY') ILIKE %s")
+        if campo_db == "id":
+            filtros.append("id = %s")
+            valores.append(int(valor))
+
+        elif campo_db in ["ultima_inspecao", "alvara", "vigi_risco"]:
+            filtros.append(f"{campo_db} = %s")
+            valores.append(valor)
+
         else:
             filtros.append(f"{campo_db}::text ILIKE %s")
-
-        valores.append(f"%{valor}%")
-
-    sql = "SELECT * FROM public.cadastros WHERE 1=1"
-
-    # FILTRO POR MATRÍCULA
-    if session["nivel"] != 1:
-        sql += " AND fiscal_matricula = %s"
-        valores.append(session["matricula"])
+            valores.append(f"%{valor}%")
 
     if filtros:
         sql += " AND " + " AND ".join(filtros)
@@ -226,7 +233,6 @@ def pesquisar_estabelecimentos():
 
     return render_template("abas.html", licencas=dados)
 
-
 # =========================
 # ANALISAR / EDITAR LICENÇA
 # =========================
@@ -239,57 +245,113 @@ def analisar_licenca(licenca_id):
     conn = get_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # Verifica se usuário tem acesso
-    if session["nivel"] != 1:
-        cur.execute("""
-            SELECT id
-            FROM public.cadastros
-            WHERE id = %s
-              AND fiscal_matricula = %s
-        """, (licenca_id, session["matricula"]))
-
-        if not cur.fetchone():
-            cur.close()
-            conn.close()
-            return "Acesso negado", 403
-
+    # =========================
+    # POST - SALVAR ALTERAÇÕES
+    # =========================
     if request.method == "POST":
-        campo = request.form.get("campo")
-        valor = request.form.get("valor")
 
-        if campo:
-            cur.execute(
-                f"UPDATE public.cadastros SET {campo} = %s WHERE id = %s",
-                (valor, licenca_id)
-            )
-            conn.commit()
-            cur.close()
-            conn.close()
-            return jsonify({"success": True})
-
-        return jsonify({"success": False}), 400
-
-    # GET
-    if session["nivel"] == 1:
-        cur.execute("SELECT * FROM public.cadastros WHERE id = %s", (licenca_id,))
-    else:
         cur.execute("""
-            SELECT *
-            FROM public.cadastros
+            UPDATE public.cadastros SET
+                razao_social = %s,
+                nome_fantasia = %s,
+                nivel = %s,
+                classe = %s,
+                cnpj_ou_cpf = %s,
+                cnae_principal = %s,
+                ultima_inspecao = %s,
+                alvara = %s,
+                vigi_risco = %s,
+                fiscal_responsavel = %s,
+                fiscal_matricula = %s,
+                observacoes = %s
             WHERE id = %s
-              AND fiscal_matricula = %s
-        """, (licenca_id, session["matricula"]))
+        """, (
+            request.form.get("razao_social"),
+            request.form.get("nome_fantasia"),
+            request.form.get("nivel"),
+            request.form.get("classe"),
+            request.form.get("cnpj_ou_cpf"),
+            request.form.get("cnae_principal"),
+            request.form.get("ultima_inspecao") or None,
+            request.form.get("alvara") or None,
+            request.form.get("vigi_risco") or None,
+            request.form.get("fiscal_responsavel"),
+            request.form.get("fiscal_matricula"),
+            request.form.get("observacoes"),
+            licenca_id
+        ))
 
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return redirect(f"/licencas/{licenca_id}/analisar")
+
+    # =========================
+    # GET - CARREGAR PÁGINA
+    # =========================
+    cur.execute("SELECT * FROM public.cadastros WHERE id = %s", (licenca_id,))
     licenca = cur.fetchone()
+
     cur.close()
     conn.close()
 
     if not licenca:
         return "Registro não encontrado", 404
 
-    return render_template("usuarios.html", licenca=licenca)
+    return render_template("analisar.html", licenca=licenca)
+
+    # =========================
+    # PAGINA DE CADASTRO DE NOVO ESTABELECIMENTO
+    # =========================
+@app.route("/cadastros/novo", methods=["GET", "POST"])
+def novo_cadastro():
+    if "matricula" not in session:
+        return redirect("/")
+
+    if request.method == "POST":
+        conn = get_connection()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        cur.execute("""
+            INSERT INTO public.cadastros
+            (razao_social, nome_fantasia, nivel, classe, cnpj_ou_cpf, cnae_principal,
+             ultima_inspecao, alvara, vigi_risco, fiscal_responsavel, fiscal_matricula,
+             observacoes)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            RETURNING id
+        """, (
+            request.form.get("razao_social"),
+            request.form.get("nome_fantasia"),
+            request.form.get("nivel"),
+            request.form.get("classe"),
+            request.form.get("cnpj_ou_cpf"),
+            request.form.get("cnae_principal"),
+            request.form.get("ultima_inspecao") or None,
+            request.form.get("alvara") or None,
+            request.form.get("vigi_risco") or None,
+            request.form.get("fiscal_responsavel"),
+            request.form.get("fiscal_matricula"),
+            request.form.get("observacoes"),
+        ))
+
+        novo = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        # opcional: já abrir a página de edição do registro criado
+        return redirect(f"/licencas/{novo['id']}/analisar")
+
+    return render_template("analisar_novo_estabelecimento.html")
+
+
+
 
 
 # =========================
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+

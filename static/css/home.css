@@ -67,6 +67,17 @@ body {
     font-size: 13px;
 }
 
+/* USUARIO */
+.navbar-user {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #333;
+}
+
+
 /* MENU */
 .navbar-menu {
     background: #ffffff;
@@ -90,6 +101,14 @@ body {
 
 .navbar-menu .icon {
     font-size: 16px;
+}
+.navbar-link {
+    font-size: 16px;
+    all: unset;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 /* RESPONSIVO */
