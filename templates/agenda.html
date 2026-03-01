@@ -1,22 +1,39 @@
 <!doctype html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agenda da Semana</title>
   <link rel="stylesheet" href="/static/css/agenda.css">
+  <link rel="stylesheet" href="/static/css/analisar.css">
 </head>
+
 <body>
 
-<header class="agenda-header">
-  <h3>Agenda da semana</h3>
-  <div class="agenda-actions">
-    <button id="btn-recarregar" class="btn">Recarregar</button>
-  </div>
-</header>
+  <header class="agenda-header">
+        <div class="navbar-logo">
+            <img src="/static/img/logo.png" alt="" />
+        </div>
+        <div class="page-header__title">
+            <h1>VIGILÂNCIA SANITÁRIA DE TAIOBEIRAS</h1>
+            
+        </div>
+    <div class="agenda-actions">
+      <a href="{{ url_for('abas') }}" class="btn btn-secondary">Voltar</a>
+      <button type="button" class="btn btn-primary" onclick="window.print()">Imprimir</button>
+      <button id="btn-recarregar" class="btn btn-secondary">Recarregar</button>
+    </div>
+  </header>
 
-<main class="board" id="agenda-grid"></main>
 
-<script src="/static/javaScript/agenda.js"></script>
+
+
+  
+  <main class="board" id="agenda-grid"></main>
+  
+
+  <script src="/static/javaScript/agenda.js"></script>
 </body>
+
 </html>

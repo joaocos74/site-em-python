@@ -3,9 +3,10 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>VISA Taióbeiras</title>
+    <title>VISA Taiobeiras</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/static/css/home.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 </head>
 
@@ -16,12 +17,13 @@
                 <img src="static\img\logo.png" alt="Vigilância Sanitária Taióbeiras" />
             </div>
 
+            
             <div class="navbar-search">
                 <input type="text" placeholder="O que você procura?" />
                 <button>🔍</button>
             </div>
             <div class="navbar-user">
-                👤 {{ session.get('nome') }}
+                <i class="fa-solid fa-user"></i> {{ session.get('nome') }}
             </div>
 
 
@@ -34,33 +36,45 @@
         <nav class="navbar-menu">
 
             <a href="{{ url_for('mapa') }}" class="navbar-link">
-                <span class="icon">🔍</span>
-                <span>MAPA</span>
-            </a>
+        <span class="icon">
+            <i class="fa-duotone fa-solid fa-map-location"></i>
+        </span>
+        <span>MAPA</span>
+    </a>
 
             <a href="{{ url_for('novo_cadastro') }}" class="navbar-link">
-                <span class="icon">🏠</span>
+                <span class="icon">
+                    <i class="fa-solid fa-address-card"></i>
+                </span>
                 <span>NOVO CADASTRO</span>
             </a>
 
             <a href="{{ url_for('agenda') }}" class="navbar-link">
-                <span class="icon">📄</span>
-                <span>PUBLICAÇÕES</span>
+                <span class="icon">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                </span>
+                <span>AGENDA</span>
             </a>
 
             <a href="" class="navbar-link">
-                <span class="icon">🏛</span>
-                <span>A PREFEITURA</span>
+                <span class="icon">
+                    <i class="fa-solid fa-file-export"></i>
+                </span>
+                <span>REDESIM</span>
             </a>
 
             <a href="" class="navbar-link">
-                <span class="icon">🏙</span>
-                <span>A NOSSA CIDADE</span>
+                <span class="icon">
+                    <i class="fa-regular fa-file-excel"></i>
+                </span>
+                <span>ROBERTINHO</span>
             </a>
 
             <a href="" class="navbar-link">
-                <span class="icon">☰</span>
-                <span>SERVIÇOS</span>
+                <span class="icon">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </span>
+                <span>ESTATÍSTICAS</span>
             </a>
 
         </nav>

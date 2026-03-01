@@ -376,11 +376,11 @@ def api_agenda_semana_atual():
 
     cur.execute("""
         SELECT p.id, p.dia, p.turno, p.texto, p.feito,
-               p.matricula,
+               p.matricula_autor,
                COALESCE(p.autor_nome, u.nome) AS autor_nome,
                COALESCE(u.cor_postit, '#fff4a3') AS cor
         FROM public.agenda_postits p
-        LEFT JOIN public.usuarios u ON u.matricula = p.matricula
+        LEFT JOIN public.usuarios u ON u.matricula = p.matricula_autor
         WHERE p.dia BETWEEN %s AND %s
         ORDER BY p.dia, p.turno, p.id
     """, (inicio, fim))
@@ -399,7 +399,7 @@ def api_agenda_semana_atual():
                 "turno": i["turno"],
                 "texto": i["texto"],
                 "feito": i["feito"],
-                "matricula": i["matricula"],
+                "matricula": i["matricula_autor"],
                 "autor_nome": i["autor_nome"],
                 "cor": i["cor"],
             } for i in itens
@@ -412,25 +412,44 @@ def api_agenda_criar():
         return jsonify({"error": "não autenticado"}), 401
 
     data = request.get_json(force=True)
+
     dia = data.get("dia")
     texto = (data.get("texto") or "").strip()
     turno = (data.get("turno") or "manha").strip().lower()
+    vinculados = data.get("vinculados", [])
 
     if not dia or not texto:
         return jsonify({"error": "dia e texto são obrigatórios"}), 400
+
     if turno not in ("manha", "tarde"):
-        return jsonify({"error": "turno inválido (manha/tarde)"}), 400
+        return jsonify({"error": "turno inválido"}), 400
 
     conn = get_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
+    # 1️⃣ cria post-it
     cur.execute("""
-        INSERT INTO public.agenda_postits (matricula, autor_nome, dia, turno, texto)
+        INSERT INTO public.agenda_postits
+        (matricula_autor, autor_nome, dia, turno, texto)
         VALUES (%s, %s, %s, %s, %s)
-        RETURNING id, dia, turno, texto, feito, matricula, autor_nome
+        RETURNING id, dia, turno, texto, feito
     """, (session["matricula"], session.get("nome"), dia, turno, texto))
 
     novo = cur.fetchone()
+    postit_id = novo["id"]
+
+    # 2️⃣ garante que criador está vinculado
+    vinculados = set(vinculados)
+    vinculados.add(session["matricula"])
+
+    # 3️⃣ cria vínculos
+    for matricula in vinculados:
+        cur.execute("""
+            INSERT INTO public.agenda_postits_usuarios (postit_id, matricula)
+            VALUES (%s, %s)
+            ON CONFLICT DO NOTHING
+        """, (postit_id, matricula))
+
     conn.commit()
     cur.close()
     conn.close()
@@ -441,8 +460,6 @@ def api_agenda_criar():
         "turno": novo["turno"],
         "texto": novo["texto"],
         "feito": novo["feito"],
-        "matricula": novo["matricula"],
-        "autor_nome": novo["autor_nome"],
     })
 
 @app.route("/api/agenda/<int:postit_id>", methods=["PATCH"])
@@ -494,7 +511,7 @@ def api_agenda_atualizar(postit_id):
         UPDATE public.agenda_postits
         SET {", ".join(sets)}
         WHERE id = %s
-        RETURNING id, dia, turno, texto, feito, matricula, autor_nome
+        RETURNING id, dia, turno, texto, feito, matricula_autor, autor_nome
     """, vals)
 
     up = cur.fetchone()
@@ -511,7 +528,7 @@ def api_agenda_atualizar(postit_id):
         "turno": up["turno"],
         "texto": up["texto"],
         "feito": up["feito"],
-        "matricula": up["matricula"],
+        "matricula": up["matricula_autor"],
         "autor_nome": up["autor_nome"],
     })
 
@@ -569,12 +586,15 @@ def api_agenda_semana_atual_minha():
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute("""
         SELECT p.id, p.dia, p.turno, p.texto, p.feito,
-               p.matricula,
-               COALESCE(u.cor_postit, '#fff4a3') AS cor
+            p.matricula_autor,
+            COALESCE(u.cor_postit, '#fff4a3') AS cor
         FROM public.agenda_postits p
-        LEFT JOIN public.usuarios u ON u.matricula = p.matricula
+        JOIN public.agenda_postits_usuarios pu
+            ON pu.postit_id = p.id
+        LEFT JOIN public.usuarios u
+            ON u.matricula = p.matricula_autor
         WHERE p.dia BETWEEN %s AND %s
-          AND p.matricula = %s
+        AND pu.matricula = %s
         ORDER BY p.dia, p.turno, p.id
     """, (inicio, fim, session["matricula"]))
 
@@ -597,6 +617,29 @@ def api_agenda_semana_atual_minha():
         ]
     })
 
+# =========================
+# agenda da semana espelho
+# =========================
+
+@app.route("/api/usuarios")
+def api_usuarios():
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cur.execute("""
+        SELECT matricula, nome
+        FROM public.usuarios
+        ORDER BY nome
+    """)
+
+    usuarios = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return jsonify(usuarios)
 
 
 # =========================

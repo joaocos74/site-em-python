@@ -59,12 +59,24 @@ body {
 }
 
 /* LOGIN */
-.navbar-login{
-    background: #ffffff;
-    border: 1px solid #ccc;
+.navbar-login {
+    background: white;
+    color: rgb(218, 5, 5);
+    border-radius: 4px;
+    border: 1px solid rgb(238, 147, 147);
     padding: 6px 14px;
     cursor: pointer;
     font-size: 13px;
+    transition: all 0.25s ease;
+}
+
+.navbar-login:hover {
+    background: #ea0303;
+    color: white;
+    border: 1px solid #ea0303;
+}
+.navbar-login:hover {
+    background: #c40000;
 }
 
 /* USUARIO */
@@ -103,12 +115,34 @@ body {
     font-size: 16px;
 }
 .navbar-link {
-    font-size: 16px;
-    all: unset;
-    cursor: pointer;
+    color: rgb(0, 0, 0); /* texto preto */
+    text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 16px;
+}
+.navbar-link .icon i {
+    font-size: 22px;
+    width: 26px;        /* mantém alinhamento vertical */
+    text-align: center;
+}
+
+.navbar-link .icon i {
+    color: #169b5b; /* azul escuro institucional */
+}
+
+.icon i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.navbar-link:hover .icon i {
+    color: #0b4a2b; /* azul mais claro ao passar o mouse */
+}
+
+.navbar-link:hover {
+    color: black; /* mantém texto preto */
 }
 
 /* RESPONSIVO */
@@ -130,8 +164,8 @@ body {
 }
 
 :root {
-    --primary-color: #005bba;
-    --primary-color-dark: #00408a;
+    --primary-color: #169b5b;
+    --primary-color-dark: #169b5b;
     --secondary-color: #f5f5f5;
     --border-color: #d0d7de;
     --text-color: #222;

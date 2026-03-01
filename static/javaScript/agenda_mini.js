@@ -73,9 +73,10 @@ function card(it) {
   return c;
 }
 
-api("/api/agenda/semana-atual/minha")
-  .then(data => render(data.inicio, data.itens))
-  .catch(err => {
-    console.error(err);
-    root.innerHTML = "<p>Erro ao carregar mini-agenda</p>";
-  });
+async function refresh(){
+  const data = await api("/api/agenda/semana-atual/minha");
+  render(data.inicio, data.itens);
+}
+
+refresh().catch(console.error);
+setInterval(() => refresh().catch(console.error), 60000);

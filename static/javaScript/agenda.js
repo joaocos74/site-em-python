@@ -1,19 +1,80 @@
+// agenda.js (versão limpa e completa)
+// - Vincular usuários via @primeironome no texto (sem select feio)
+// - Backend esperado: /api/usuarios, /api/agenda*, conforme seu main.py
+
+let usuariosDisponiveis = []; // [{matricula, nome}]
+
 const board = document.getElementById("agenda-grid");
 const btnRecarregar = document.getElementById("btn-recarregar");
 
 // Sem domingo
 const diasPt = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-async function api(url, opts={}) {
+async function api(url, opts = {}) {
   const res = await fetch(url, {
     headers: { "Content-Type": "application/json" },
     ...opts
   });
+
   if (!res.ok) {
     const text = await res.text();
     throw new Error(text || `Erro ${res.status}`);
   }
+
   return res.json();
+}
+
+function normaliza(s) {
+  return (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+async function carregarUsuarios() {
+  // Usado para resolver @primeironome -> matrícula
+  usuariosDisponiveis = await api("/api/usuarios");
+}
+
+function extrairMencoesPrimeiroNome(texto) {
+  // @ + apenas letras (aceita acentos), mínimo 2 letras
+  const re = /@([a-zA-ZÀ-ÿ]{2,})/g;
+  const out = new Set();
+  let m;
+  while ((m = re.exec(texto)) !== null) out.add(normaliza(m[1]));
+  return Array.from(out);
+}
+
+function resolverPrimeirosNomesParaMatriculas(primeirosNomes) {
+  const mapa = new Map(); // primeiroNomeNorm -> [matriculas]
+
+  for (const u of usuariosDisponiveis) {
+    const primeiro = normaliza((u.nome || "").split(" ")[0] || "");
+    if (!primeiro) continue;
+
+    if (!mapa.has(primeiro)) mapa.set(primeiro, []);
+    mapa.get(primeiro).push(String(u.matricula));
+  }
+
+  const vinculados = new Set();
+  const ambiguos = [];
+
+  for (const p of primeirosNomes) {
+    const mats = mapa.get(p) || [];
+    if (mats.length === 1) vinculados.add(mats[0]);
+    if (mats.length > 1) ambiguos.push(p);
+  }
+
+  // Você escolheu primeiro nome; quando for ambíguo, avisamos e não vinculamos.
+  if (ambiguos.length) {
+    alert(
+      "Não consegui vincular: " +
+        ambiguos.map(x => `@${x}`).join(", ") +
+        " (primeiro nome repetido)"
+    );
+  }
+
+  return Array.from(vinculados);
 }
 
 function fmtDia(iso) {
@@ -23,11 +84,11 @@ function fmtDia(iso) {
   return `${dia}/${mes}`;
 }
 
-function slotSelector(diaIso, turno){
+function slotSelector(diaIso, turno) {
   return `.slot[data-dia="${diaIso}"][data-turno="${turno}"]`;
 }
 
-function getSlot(diaIso, turno){
+function getSlot(diaIso, turno) {
   return document.querySelector(slotSelector(diaIso, turno));
 }
 
@@ -41,10 +102,10 @@ function renderSemana(inicioIso, itens) {
   const inicio = new Date(inicioIso + "T00:00:00");
 
   // 6 dias (Seg–Sáb)
-  for (let i=0; i<6; i++) {
+  for (let i = 0; i < 6; i++) {
     const d = new Date(inicio);
     d.setDate(inicio.getDate() + i);
-    const iso = d.toISOString().slice(0,10);
+    const iso = d.toISOString().slice(0, 10);
 
     const col = document.createElement("div");
     col.className = "day-col";
@@ -86,15 +147,14 @@ function renderSemana(inicioIso, itens) {
   for (const it of itens) adicionarPostitNoDOM(it);
 }
 
-function criarSlot(diaIso, turno, label){
+function criarSlot(diaIso, turno, label) {
   const slot = document.createElement("div");
   slot.className = "slot";
   slot.dataset.dia = diaIso;
   slot.dataset.turno = turno;
   slot.dataset.label = label;
 
-  // drag&drop target
-  slot.addEventListener("dragover", (ev) => {
+  slot.addEventListener("dragover", ev => {
     ev.preventDefault();
     slot.classList.add("dragover");
     ev.dataTransfer.dropEffect = "move";
@@ -102,7 +162,7 @@ function criarSlot(diaIso, turno, label){
 
   slot.addEventListener("dragleave", () => slot.classList.remove("dragover"));
 
-  slot.addEventListener("drop", async (ev) => {
+  slot.addEventListener("drop", async ev => {
     ev.preventDefault();
     slot.classList.remove("dragover");
 
@@ -115,10 +175,10 @@ function criarSlot(diaIso, turno, label){
     const novoDia = slot.dataset.dia;
     const novoTurno = slot.dataset.turno;
 
-    // move visual imediato
+    // Move visual imediato
     slot.appendChild(card);
 
-    // persiste no backend
+    // Persiste no backend
     try {
       await api(`/api/agenda/${postitId}`, {
         method: "PATCH",
@@ -127,10 +187,12 @@ function criarSlot(diaIso, turno, label){
     } catch (e) {
       console.error(e);
       alert("Erro ao salvar movimentação. Recarregue a página.");
+      // Volta ao estado consistente
+      await carregar();
     }
   });
 
-  // botão de criar dentro de tarde também (opcional)
+  // Botão de criar dentro do slot
   const add = document.createElement("button");
   add.className = "btn";
   add.style.margin = "6px 8px 0 0";
@@ -138,7 +200,6 @@ function criarSlot(diaIso, turno, label){
   add.textContent = `+ ${turno === "manha" ? "manhã" : "tarde"}`;
   add.onclick = () => criarPostit(diaIso, turno);
 
-  // barra superior pequena
   const bar = document.createElement("div");
   bar.style.display = "flex";
   bar.style.justifyContent = "flex-end";
@@ -158,10 +219,10 @@ function adicionarPostitNoDOM(it) {
   card.draggable = true;
   card.dataset.id = it.id;
 
-  // cor por usuário
+  // Cor por autor
   if (it.cor) card.style.background = it.cor;
 
-  card.addEventListener("dragstart", (ev) => {
+  card.addEventListener("dragstart", ev => {
     ev.dataTransfer.setData("text/plain", String(it.id));
   });
 
@@ -195,7 +256,7 @@ function adicionarPostitNoDOM(it) {
 
   const autor = document.createElement("div");
   autor.className = "autor";
-  autor.textContent = it.autor_nome ? `Por: ${it.autor_nome}` : (it.matricula ? `Mat.: ${it.matricula}` : "");
+  autor.textContent = it.autor_nome ? `Criado por: ${it.autor_nome}` : (it.matricula ? `Mat.: ${it.matricula}` : "");
 
   const texto = document.createElement("div");
   texto.className = "texto";
@@ -214,15 +275,20 @@ async function carregar() {
 }
 
 async function criarPostit(diaIso, turno) {
-  const texto = prompt(`Novo post-it (${turno})`);
+  const texto = prompt(
+    `Novo post-it (${turno})\n` +
+    `Para vincular alguém, use @nome (ex.: @maria)`
+  );
   if (!texto) return;
 
-  const novo = await api("/api/agenda", {
+  const mencoes = extrairMencoesPrimeiroNome(texto);
+  const vinculados = resolverPrimeirosNomesParaMatriculas(mencoes);
+
+  await api("/api/agenda", {
     method: "POST",
-    body: JSON.stringify({ dia: diaIso, turno, texto })
+    body: JSON.stringify({ dia: diaIso, turno, texto, vinculados })
   });
 
-  // a API retorna sem cor; recarrega para pegar cor via JOIN (mais simples)
   await carregar();
 }
 
@@ -250,6 +316,7 @@ async function marcarFeito(id, feito) {
 
 async function apagarPostit(id) {
   if (!confirm("Apagar este post-it?")) return;
+
   await api(`/api/agenda/${id}`, { method: "DELETE" });
 
   const card = document.getElementById(`postit-${id}`);
@@ -258,12 +325,20 @@ async function apagarPostit(id) {
 
 async function apagarDia(diaIso) {
   if (!confirm("Apagar todos os post-its deste dia?")) return;
+
   await api(`/api/agenda/dia/${diaIso}`, { method: "DELETE" });
   await carregar();
 }
 
 btnRecarregar.onclick = () => carregar().catch(console.error);
-carregar().catch(err => {
-  console.error(err);
-  board.innerHTML = "<p style='padding:12px;background:#fff;border-radius:10px;'>Erro ao carregar agenda. Abra o Console (F12).</p>";
+
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    await carregarUsuarios();
+  } catch (e) {
+    console.error(e);
+    // Se falhar carregar usuários, ainda deixa usar agenda sem vínculos
+  }
+
+  await carregar();
 });
