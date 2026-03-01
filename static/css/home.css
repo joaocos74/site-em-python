@@ -181,6 +181,9 @@ body {
 }
 
 /* Layout principal */
+.page-content h2 {
+    text-align: center;
+}   
 
 .page-content {
     max-width: 1200px;
@@ -285,14 +288,15 @@ body {
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
-    color: #ffffff;
-    border-color: var(--primary-color);
+    background-color: white;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    transition: 0.25s ease;
 }
 
 .btn-primary:hover {
-    background-color: var(--primary-color-dark);
-    border-color: var(--primary-color-dark);
+    background-color: var(--primary-color);
+    color: white;
 }
 
 .btn-secondary {

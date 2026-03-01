@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect, request, flash, jsonify, session
 from flask import request, redirect, url_for
+from datetime import date, datetime, timedelta
 import psycopg2
 import psycopg2.extras
 import os
@@ -345,6 +346,256 @@ def novo_cadastro():
     return render_template("analisar_novo_estabelecimento.html")
 
 
+# =========================
+# agenda da semana (compartilhada)
+# =========================
+
+from datetime import date, timedelta
+
+def _inicio_semana(dt: date) -> date:
+    # segunda-feira como início
+    return dt - timedelta(days=dt.weekday())
+
+@app.route("/agenda")
+def agenda():
+    if "matricula" not in session:
+        return redirect("/")
+    return render_template("agenda.html")
+
+@app.route("/api/agenda/semana-atual")
+def api_agenda_semana_atual():
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    hoje = date.today()
+    inicio = _inicio_semana(hoje)
+    fim = inicio + timedelta(days=6)
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cur.execute("""
+        SELECT p.id, p.dia, p.turno, p.texto, p.feito,
+               p.matricula,
+               COALESCE(p.autor_nome, u.nome) AS autor_nome,
+               COALESCE(u.cor_postit, '#fff4a3') AS cor
+        FROM public.agenda_postits p
+        LEFT JOIN public.usuarios u ON u.matricula = p.matricula
+        WHERE p.dia BETWEEN %s AND %s
+        ORDER BY p.dia, p.turno, p.id
+    """, (inicio, fim))
+
+    itens = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "inicio": inicio.isoformat(),
+        "fim": fim.isoformat(),
+        "itens": [
+            {
+                "id": i["id"],
+                "dia": i["dia"].isoformat(),
+                "turno": i["turno"],
+                "texto": i["texto"],
+                "feito": i["feito"],
+                "matricula": i["matricula"],
+                "autor_nome": i["autor_nome"],
+                "cor": i["cor"],
+            } for i in itens
+        ]
+    })
+
+@app.route("/api/agenda", methods=["POST"])
+def api_agenda_criar():
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    data = request.get_json(force=True)
+    dia = data.get("dia")
+    texto = (data.get("texto") or "").strip()
+    turno = (data.get("turno") or "manha").strip().lower()
+
+    if not dia or not texto:
+        return jsonify({"error": "dia e texto são obrigatórios"}), 400
+    if turno not in ("manha", "tarde"):
+        return jsonify({"error": "turno inválido (manha/tarde)"}), 400
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cur.execute("""
+        INSERT INTO public.agenda_postits (matricula, autor_nome, dia, turno, texto)
+        VALUES (%s, %s, %s, %s, %s)
+        RETURNING id, dia, turno, texto, feito, matricula, autor_nome
+    """, (session["matricula"], session.get("nome"), dia, turno, texto))
+
+    novo = cur.fetchone()
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "id": novo["id"],
+        "dia": novo["dia"].isoformat(),
+        "turno": novo["turno"],
+        "texto": novo["texto"],
+        "feito": novo["feito"],
+        "matricula": novo["matricula"],
+        "autor_nome": novo["autor_nome"],
+    })
+
+@app.route("/api/agenda/<int:postit_id>", methods=["PATCH"])
+def api_agenda_atualizar(postit_id):
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    data = request.get_json(force=True)
+    texto = data.get("texto")
+    feito = data.get("feito")
+    dia = data.get("dia")
+    turno = data.get("turno")
+
+    sets = []
+    vals = []
+
+    if texto is not None:
+        texto = (texto or "").strip()
+        if not texto:
+            return jsonify({"error": "texto não pode ser vazio"}), 400
+        sets.append("texto = %s")
+        vals.append(texto)
+
+    if feito is not None:
+        sets.append("feito = %s")
+        vals.append(bool(feito))
+
+    if dia is not None:
+        sets.append("dia = %s")
+        vals.append(dia)
+
+    if turno is not None:
+        turno = (turno or "").strip().lower()
+        if turno not in ("manha", "tarde"):
+            return jsonify({"error": "turno inválido (manha/tarde)"}), 400
+        sets.append("turno = %s")
+        vals.append(turno)
+
+    if not sets:
+        return jsonify({"error": "nada para atualizar"}), 400
+
+    sets.append("atualizado_em = now()")
+    vals.append(postit_id)
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cur.execute(f"""
+        UPDATE public.agenda_postits
+        SET {", ".join(sets)}
+        WHERE id = %s
+        RETURNING id, dia, turno, texto, feito, matricula, autor_nome
+    """, vals)
+
+    up = cur.fetchone()
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    if not up:
+        return jsonify({"error": "post-it não encontrado"}), 404
+
+    return jsonify({
+        "id": up["id"],
+        "dia": up["dia"].isoformat(),
+        "turno": up["turno"],
+        "texto": up["texto"],
+        "feito": up["feito"],
+        "matricula": up["matricula"],
+        "autor_nome": up["autor_nome"],
+    })
+
+@app.route("/api/agenda/<int:postit_id>", methods=["DELETE"])
+def api_agenda_apagar(postit_id):
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        DELETE FROM public.agenda_postits
+        WHERE id = %s
+    """, (postit_id,))
+    apagados = cur.rowcount
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"deleted": apagados})
+
+@app.route("/api/agenda/dia/<dia>", methods=["DELETE"])
+def api_agenda_apagar_dia(dia):
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        DELETE FROM public.agenda_postits
+        WHERE dia = %s
+    """, (dia,))
+    apagados = cur.rowcount
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"deleted": apagados})
+
+
+# =========================
+# agenda da semana espelho
+# =========================
+
+@app.route("/api/agenda/semana-atual/minha")
+def api_agenda_semana_atual_minha():
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    hoje = date.today()
+    inicio = _inicio_semana(hoje)
+    fim = inicio + timedelta(days=6)
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("""
+        SELECT p.id, p.dia, p.turno, p.texto, p.feito,
+               p.matricula,
+               COALESCE(u.cor_postit, '#fff4a3') AS cor
+        FROM public.agenda_postits p
+        LEFT JOIN public.usuarios u ON u.matricula = p.matricula
+        WHERE p.dia BETWEEN %s AND %s
+          AND p.matricula = %s
+        ORDER BY p.dia, p.turno, p.id
+    """, (inicio, fim, session["matricula"]))
+
+    itens = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "inicio": inicio.isoformat(),
+        "fim": fim.isoformat(),
+        "itens": [
+            {
+                "id": i["id"],
+                "dia": i["dia"].isoformat(),
+                "turno": i["turno"],
+                "texto": i["texto"],
+                "feito": i["feito"],
+                "cor": i["cor"],
+            } for i in itens
+        ]
+    })
 
 
 

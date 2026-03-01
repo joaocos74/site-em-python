@@ -43,7 +43,7 @@
                 <span>NOVO CADASTRO</span>
             </a>
 
-            <a href="" class="navbar-link">
+            <a href="{{ url_for('agenda') }}" class="navbar-link">
                 <span class="icon">📄</span>
                 <span>PUBLICAÇÕES</span>
             </a>
@@ -65,7 +65,23 @@
 
         </nav>
     </header>
+
+    <section class="card">
+        <h3>Minha agenda (semana)</h3>
+        <div class="board board--mini board--compact">
+            <div class="week-grid" id="mini-agenda"></div>
+        </div>
+    </section>
+
+    <script src="/static/javaScript/agenda_mini.js"></script>
+    <link rel="stylesheet" href="/static/css/agenda.css">
+
+
+
+
     <main class="page-content">
+        <h2>Pesquisar Estabelecimentos</h2>
+        
 
         <section class="card">
             <form id="search-form" method="GET" action="/pesquisar_estabelecimentos">
@@ -87,7 +103,7 @@
                                 Nivel 2
                             </option>
                             <option value="3" {% if request.args.get('nivel')=='3' %}selected{% endif %}>
-                                Nivel  3
+                                Nivel 3
                             </option>
                         </select>
                     </div>
