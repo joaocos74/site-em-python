@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>REDESIM - Novo Registro</title>
+    <link rel="stylesheet" href="/static/css/analisar.css">
+</head>
+
+<body>
+    <header class="page-header">
+        <div class="navbar-logo">
+            <img src="/static/img/logo.png" alt="" />
+        </div>
+
+        <div class="page-header__title">
+            <h1>VIGILÂNCIA SANITÁRIA DE TAIOBEIRAS</h1>
+        </div>
+
+        <div class="page-header__actions">
+            <a href="{{ url_for('abas') }}" class="btn btn-secondary">Voltar</a>
+        </div>
+    </header>
+
+    <main class="page-content">
+
+        <form id="form-redesim" method="POST">
+
+            <!-- ========================= -->
+            <!-- PESQUISA CNPJ -->
+            <!-- ========================= -->
+
+            <section class="card card--section">
+                <header class="card__header">
+                    <h2>Pesquisa por CNPJ</h2>
+                </header>
+
+                <div class="card__body">
+                    <div class="form-group">
+                        <label>CNPJ</label>
+                        <input type="text" id="buscar_cnpj">
+                        <button type="button" class="btn btn-secondary" onclick="buscarCNPJ()">Buscar</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================= -->
+            <!-- DADOS DO ESTABELECIMENTO -->
+            <!-- ========================= -->
+
+            <section class="card card--section">
+                <header class="card__header">
+                    <h2>Dados do Estabelecimento</h2>
+                </header>
+
+                <div class="card__body">
+                    <div class="form-grid-2">
+
+                        <div class="form-group form-group--full">
+                            <label>Nome Empresarial</label>
+                            <input type="text" id="razao_social" name="razao_social" value="">
+                        </div>
+
+                        <div class="form-group form-group--full">
+                            <label>Nome Fantasia</label>
+                            <input type="text" id="nome_fantasia" name="nome_fantasia" value="">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nível</label>
+                            <input type="text" id="nivel" name="nivel" value="">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Classe</label>
+                            <input type="text" id="classe" name="classe" value="">
+                        </div>
+
+                        <div class="form-group">
+                            <label>CNPJ</label>
+                            <input type="text" id="cnpj_ou_cpf" name="cnpj_ou_cpf" value="">
+                        </div>
+
+                        <div class="form-group">
+                            <label>CNAE Principal</label>
+                            <input type="text" id="cnae_principal" name="cnae_principal" value="">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="alvara">Data da Liberação</label>
+                            <input type="date" id="alvara" name="alvara" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Fiscal Responsável</label>
+                            <input type="text" id="fiscal_responsavel" name="fiscal_responsavel" value="">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Matrícula</label>
+                            <input type="text" id="fiscal_matricula" name="fiscal_matricula" value="">
+
+                        </div>
+                        <div class="form-group form-group--full">
+                            <label>Observações</label>
+                            <textarea id="observacoes" name="observacoes" rows="3"></textarea>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <button type="submit" form="form-redesim" class="btn btn-primary">Salvar</button>
+
+            </section>
+
+
+
+            <!-- ========================= -->
+            <!-- tabela -->
+            <!-- ========================= -->
+
+            <section class="card card--results">
+
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+
+                    <h2>Estabelecimentos Liberados (REDESIM)</h2>
+
+                    <div>
+
+                        <button type="button" onclick="verLiberados()" class="btn btn-primary">
+                            Ver liberados
+                        </button>
+
+
+                        <button class="btn btn-secondary" onclick="exportarExcel()">
+                            Exportar Excel
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div id="redesim_resultados" style="display:none; margin-top:20px;">
+
+                    <div class="table-wrapper">
+
+                        <table class="results-table" id="tabela_redesim">
+
+                            <thead>
+                                <tr>
+                                    <th>Cadastro</th>
+                                    <th>Nível</th>
+                                    <th>Classe</th>
+                                    <th>Razão Social</th>
+                                    <th>CNPJ</th>
+                                    <th>Data da Liberação</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="corpo_redesim"></tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+
+            </section>
+        </form>
+
+    </main>
+
+    <script src="/static/javaScript/redesim.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+</body>
+
+</html>

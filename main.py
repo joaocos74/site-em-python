@@ -5,6 +5,7 @@ import psycopg2
 import psycopg2.extras
 import os
 
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'joao_paulo_seguro'
 
@@ -640,6 +641,192 @@ def api_usuarios():
     conn.close()
 
     return jsonify(usuarios)
+
+# =========================
+# aba redesim
+# =========================
+
+@app.route("/redesim", methods=["GET"])
+def redesim():
+    if "matricula" not in session:
+        return redirect("/")
+    return render_template("redesim.html")
+
+@app.route("/api/redesim/buscar_cnpj")
+def buscar_cnpj_redesim():
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    cnpj = request.args.get("cnpj")
+
+    if not cnpj:
+        return jsonify({"error": "cnpj obrigatório"}), 400
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cur.execute("""
+        SELECT * FROM public.cadastros
+        WHERE cnpj_ou_cpf = %s
+        LIMIT 1
+    """, (cnpj,))
+
+    cadastro = cur.fetchone()
+
+    cur.close()
+    conn.close()
+
+    if not cadastro:
+        return jsonify({"existe": False})
+
+    return jsonify({
+        "existe": True,
+        "dados": cadastro
+    })
+
+
+@app.route("/redesim", methods=["POST"])
+def salvar_redesim():
+    if "matricula" not in session:
+        return redirect("/")
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cnpj = request.form.get("cnpj_ou_cpf")
+
+    # 🔎 Verifica se já existe cadastro
+    cur.execute("""
+        SELECT id FROM public.cadastros
+        WHERE cnpj_ou_cpf = %s
+        LIMIT 1
+    """, (cnpj,))
+
+    existente = cur.fetchone()
+
+    if existente:
+        cadastro_id = existente["id"]
+
+        # 🔄 Atualiza cadastro existente
+        cur.execute("""
+            UPDATE public.cadastros SET
+                razao_social = %s,
+                nome_fantasia = %s,
+                nivel = %s,
+                classe = %s,
+                cnae_principal = %s,
+                alvara = %s,
+                fiscal_responsavel = %s,
+                fiscal_matricula = %s,
+                observacoes = %s
+            WHERE id = %s
+        """, (
+            request.form.get("razao_social"),
+            request.form.get("nome_fantasia"),
+            request.form.get("nivel"),
+            request.form.get("classe"),
+            request.form.get("cnae_principal"),
+            request.form.get("alvara") or None,
+            request.form.get("fiscal_responsavel") or None,
+            request.form.get("fiscal_matricula") or None,
+            request.form.get("observacoes"),
+            cadastro_id
+        ))
+
+    else:
+        # ➕ Insere novo cadastro
+        cur.execute("""
+            INSERT INTO public.cadastros
+            (razao_social, nome_fantasia, nivel, classe, cnpj_ou_cpf, cnae_principal,
+             alvara, fiscal_responsavel, fiscal_matricula,
+             observacoes)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            RETURNING id
+        """, (
+            request.form.get("razao_social"),
+            request.form.get("nome_fantasia"),
+            request.form.get("nivel"),
+            request.form.get("classe"),
+            request.form.get("cnpj_ou_cpf"),
+            request.form.get("cnae_principal"),
+            request.form.get("alvara") or None,
+            request.form.get("fiscal_responsavel") or None,
+            request.form.get("fiscal_matricula") or None,
+            request.form.get("observacoes"),
+        ))
+
+        novo = cur.fetchone()
+        cadastro_id = novo["id"]
+
+    # 📦 Sempre salva na tabela redesim
+    cur.execute("""
+        INSERT INTO public.redesim
+        (cadastro_id, razao_social, nome_fantasia, cnpj_ou_cpf,
+         nivel, classe, cnae_principal, alvara,
+         fiscal_responsavel, fiscal_matricula, observacoes)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    """, (
+        cadastro_id,
+        request.form.get("razao_social"),
+        request.form.get("nome_fantasia"),
+        cnpj,
+        request.form.get("nivel"),
+        request.form.get("classe"),
+        request.form.get("cnae_principal"),
+        request.form.get("alvara") or None,
+        request.form.get("fiscal_responsavel") or None,
+        request.form.get("fiscal_matricula") or None,
+        request.form.get("observacoes"),
+    ))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    flash("Registro REDESIM salvo com sucesso!")
+    return redirect("/redesim")
+
+
+
+@app.route("/api/redesim/listar")
+def listar_redesim():
+
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    
+    cur.execute("""
+        SELECT cadastro_id,
+               nivel,
+               classe,
+               razao_social,
+               cnpj_ou_cpf,
+               TO_CHAR(alvara,'DD/MM/YYYY') as alvara
+        FROM public.redesim
+        ORDER BY id DESC
+    """)
+
+    dados = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return jsonify(dados)
+    
+
+
+
+
+
+app.config.update(
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=False,  # localhost usa http
+)
+
+
 
 
 # =========================
