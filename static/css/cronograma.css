@@ -1,55 +1,72 @@
-body {
-    font-family: Arial, sans-serif;
-    background: #f8f9fa;
+/* Usa as variáveis já definidas no sistema */
+
+.quadrimestre-section {
+    margin-bottom: 30px;
 }
 
-h2 {
-    text-align: center;
-    margin-bottom: 20px;
+.quadrimestre-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding-left: 4px;
+    color: var(--text-color);
 }
 
-.filtros {
-    text-align: center;
-    margin-bottom: 20px;
+/* Wrapper para manter padrão da tabela existente */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
 }
 
-.quadrimestre {
-    margin-bottom: 40px;
-}
-
-.quadrimestre h3 {
-    background: #003366;
-    color: white;
-    padding: 10px;
-    margin: 0;
-}
-
-table {
+/* Usa o mesmo padrão da results-table */
+.cronograma-table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
+    font-size: 0.85rem;
+    background-color: #ffffff;
 }
 
-th, td {
-    border: 1px solid #ccc;
-    padding: 6px;
+.cronograma-table thead {
+    background-color: var(--secondary-color);
+}
+
+.cronograma-table th,
+.cronograma-table td {
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+.cronograma-table th {
+    font-weight: 600;
+}
+
+.cronograma-table tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+/* Colunas centralizadas específicas */
+.cronograma-table td:nth-child(1),
+.cronograma-table td:nth-child(2),
+.cronograma-table td:nth-child(5),
+.cronograma-table td:nth-child(6) {
     text-align: center;
 }
 
-th {
-    background: #e9ecef;
-    font-weight: bold;
-}
-
+/* Status */
 .status-realizado {
-    background: #d4edda;
-    font-weight: bold;
+    background-color: #e6f4ea;
+    color: #1e7e34;
+    font-weight: 600;
 }
 
 .status-afazer {
-    background: #fff3cd;
+    background-color: #fff8e1;
+    color: #856404;
+    font-weight: 600;
 }
 
-select {
-    padding: 4px;
+/* Ajuste fino da logo (igual outras páginas) */
+.navbar-logo img {
+    height: 60px;
 }

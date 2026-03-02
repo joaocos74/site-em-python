@@ -876,6 +876,7 @@ def api_cronograma():
         SELECT c.id,
                c.nome_fantasia,
                c.nivel,
+               c.cnpj_ou_cpf,
                c.ultima_inspecao,
                c.fiscal_matricula,
                cr.quadrimestre,

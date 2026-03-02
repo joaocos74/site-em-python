@@ -1,103 +1,200 @@
-const ano = 2026;
+// ===============================
+// CONFIGURAÇÃO
+// ===============================
+const ANO_CRONOGRAMA = 2026;
 
+const meses = [
+    "Janeiro","Fevereiro","Março","Abril",
+    "Maio","Junho","Julho","Agosto",
+    "Setembro","Outubro","Novembro","Dezembro"
+];
+
+// ===============================
+// CARREGAR USUÁRIOS
+// ===============================
 function carregarUsuarios(){
+
     fetch("/api/usuarios")
-    .then(r=>r.json())
-    .then(data=>{
-        const select = document.getElementById("filtroFiscal");
-        select.innerHTML = "<option value=''>Todos</option>";
-        data.forEach(u=>{
-            select.innerHTML += `<option value="${u.matricula}">${u.nome}</option>`;
+        .then(response => response.json())
+        .then(data => {
+
+            const select = document.getElementById("filtroFiscal");
+            if (!select) return;
+
+            select.innerHTML = "<option value=''>Todos</option>";
+
+            data.forEach(u => {
+                const option = document.createElement("option");
+                option.value = u.matricula;
+                option.textContent = `${u.nome} - ${u.matricula}`;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error("Erro ao carregar usuários:", error);
         });
-    });
 }
 
+// ===============================
+// CARREGAR CRONOGRAMA
+// ===============================
 function carregarCronograma(){
 
-    const fiscal = document.getElementById("filtroFiscal").value;
+    const selectFiscal = document.getElementById("filtroFiscal");
+    if (!selectFiscal) return;
 
-    fetch(`/api/cronograma?ano=${ano}&fiscal=${fiscal}`)
-    .then(r=>r.json())
-    .then(data=>{
+    const fiscal = selectFiscal.value;
 
-        const container = document.getElementById("tabelas");
-        container.innerHTML = "";
+    fetch(`/api/cronograma?ano=${ANO_CRONOGRAMA}&fiscal=${fiscal}`)
+        .then(response => response.json())
+        .then(data => {
 
-        for(let q=1; q<=3; q++){
+            const container = document.getElementById("tabelas");
+            if (!container) return;
 
-            const div = document.createElement("div");
-            div.className = "quadrimestre";
+            container.innerHTML = "";
 
-            div.innerHTML = `
-                <h3>${q}º QUADRIMESTRE</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nível</th>
-                            <th>Estabelecimento</th>
-                            <th>Mês Previsto</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody${q}"></tbody>
-                </table>
-            `;
+            // Criar 3 quadrimestres
+            for(let q = 1; q <= 3; q++){
 
-            container.appendChild(div);
-        }
+                const section = document.createElement("section");
+                section.className = "card card--section quadrimestre-section";
 
-        data.forEach(e=>{
+                section.innerHTML = `
+                    <div class="card__header">
+                        <h2>${q}º QUADRIMESTRE</h2>
+                    </div>
 
-            let quad = e.quadrimestre || 1;
+                    <div class="card__body">
+                        <div class="table-wrapper">
+                            <table class="cronograma-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nível</th>
+                                        <th>Estabelecimento</th>
+                                        <th>CNPJ</th>
+                                        <th>Mês Previsto</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody${q}"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
 
-            let status = "A FAZER";
-            let classe = "status-afazer";
-
-            if(e.ultima_inspecao && new Date(e.ultima_inspecao).getFullYear() == ano){
-                status = "REALIZADO";
-                classe = "status-realizado";
+                container.appendChild(section);
             }
 
-            const tr = document.createElement("tr");
+            // Preencher dados
+            data.forEach(e => {
 
-            tr.innerHTML = `
-                <td>${e.nivel}</td>
-                <td>${e.nome_fantasia}</td>
-                <td>
-                    <select onchange="salvar(${e.id}, this.value)">
-                        ${[...Array(12).keys()].map(m=>
-                            `<option value="${m+1}" ${e.mes_previsto==m+1?"selected":""}>
-                                ${m+1}
-                            </option>`
-                        ).join("")}
-                    </select>
-                </td>
-                <td class="${classe}">${status}</td>
-            `;
+                const quad = e.quadrimestre || 1;
+                const tbody = document.getElementById("tbody" + quad);
+                if (!tbody) return;
 
-            document.getElementById("tbody"+quad).appendChild(tr);
+                let status = "A FAZER";
+                let classe = "status-afazer";
+
+                if (
+                    e.ultima_inspecao &&
+                    new Date(e.ultima_inspecao).getFullYear() === ANO_CRONOGRAMA
+                ) {
+                    status = "REALIZADO";
+                    classe = "status-realizado";
+                }
+
+                const tr = document.createElement("tr");
+
+                // Montar select de meses
+                const select = document.createElement("select");
+
+                meses.forEach((nome, index) => {
+                    const option = document.createElement("option");
+                    option.value = index + 1;
+                    option.textContent = nome;
+
+                    if (e.mes_previsto == index + 1) {
+                        option.selected = true;
+                    }
+
+                    select.appendChild(option);
+                });
+
+                select.addEventListener("change", function(){
+                    salvar(e.id, this.value);
+                });
+
+                // Montar células
+                tr.innerHTML = `
+                    <td>${e.id}</td>
+                    <td>${e.nivel}</td>
+                    <td style="text-align:left">${e.nome_fantasia}</td>
+                    <td>${e.cnpj_ou_cpf || ""}</td>
+                    <td></td>
+                    <td class="${classe}">${status}</td>
+                `;
+
+                // Inserir select na 5ª coluna
+                tr.children[4].appendChild(select);
+
+                tbody.appendChild(tr);
+            });
+
+        })
+        .catch(error => {
+            console.error("Erro ao carregar cronograma:", error);
         });
-    });
 }
 
+// ===============================
+// SALVAR ALTERAÇÃO
+// ===============================
 function salvar(cadastro_id, mes){
 
-    const fiscal = document.getElementById("filtroFiscal").value;
+    const selectFiscal = document.getElementById("filtroFiscal");
+    const fiscal = selectFiscal ? selectFiscal.value : "";
 
-    fetch("/api/cronograma",{
-        method:"POST",
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-            cadastro_id,
-            ano,
-            mes,
-            fiscal
+    fetch("/api/cronograma", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            cadastro_id: cadastro_id,
+            ano: ANO_CRONOGRAMA,
+            mes: mes,
+            fiscal: fiscal
         })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Erro ao salvar");
+        }
+        return response.json();
+    })
+    .then(() => {
+        carregarCronograma();
+    })
+    .catch(error => {
+        console.error("Erro ao salvar:", error);
     });
 }
 
-document.getElementById("filtroFiscal")
-    .addEventListener("change",carregarCronograma);
+// ===============================
+// EVENTOS
+// ===============================
+document.addEventListener("DOMContentLoaded", function(){
 
-carregarUsuarios();
-carregarCronograma();
+    const btnAtualizar = document.getElementById("btnAtualizar");
+    if (btnAtualizar) {
+        btnAtualizar.addEventListener("click", carregarCronograma);
+    }
+
+    const filtroFiscal = document.getElementById("filtroFiscal");
+    if (filtroFiscal) {
+        filtroFiscal.addEventListener("change", carregarCronograma);
+    }
+
+    carregarUsuarios();
+    carregarCronograma();
+});

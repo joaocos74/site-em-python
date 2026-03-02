@@ -1,19 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <title>Planejamento Anual de Inspeções</title>
+    <meta charset="UTF-8">
+    <title>Planejamento Anual</title>
     <link rel="stylesheet" href="/static/css/cronograma.css">
+    <link rel="stylesheet" href="/static/css/analisar.css">
 </head>
+
 <body>
 
-<h2>PLANEJAMENTO E CONTROLE DE AÇÕES - {{ ano }}</h2>
+<header class="page-header">
+    <div class="navbar-logo">
+        <img src="/static/img/logo.png" alt="">
+    </div>
 
-<div class="filtros">
-    <label>Fiscal:</label>
-    <select id="filtroFiscal"></select>
-</div>
+    <div class="page-header__title">
+        <h4>PLANEJAMENTO E CONTROLE DE AÇÕES 2026</h4>
+    </div>
 
-<div id="tabelas"></div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('abas') }}" class="btn btn-secondary">Voltar</a>
+        <button type="button" id="btnAtualizar" class="btn btn-primary">
+            Atualizar
+        </button>
+    </div>
+</header>
+
+
+
+<main class="page-content">
+
+    <!-- FILTROS -->
+    <section class="card card--section">
+        <div class="card__body">
+            <div class="form-grid-3">
+
+                <div class="form-group">
+                    <label>Fiscal</label>
+                    <select id="filtroFiscal"></select>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TABELAS -->
+    <div id="tabelas"></div>
+
+</main>
 
 <script src="/static/javaScript/cronograma.js"></script>
 </body>
