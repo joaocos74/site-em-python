@@ -17,6 +17,7 @@
 
 :root {
     --primary-color: #169b5b;
+    --tertiary-color: #2f49c0;
     --primary-dark: #0b472a;
     --border-color: #d0d7de;
     --bg-color: #f0f2f5;
@@ -174,15 +175,24 @@ html, body {
 }
 
 .btn-secondary {
-    background-color: #ffffff;
+    background-color: #eeeeee;
     color: var(--text-color);
     border-color: var(--border-color);
 }
 
 .btn-secondary:hover {
-    background-color: #f5f5f5;
+    background-color: #f05454;
 }
 
+.btn-tertiary {
+    background-color: var(--tertiary-color);
+    color: #ffffff;
+    border-color: var(--primary-color);
+}
+
+.btn-tertiary:hover {
+    background-color: var(--primary-dark);
+}
 
 
 /* Subtítulo interno */

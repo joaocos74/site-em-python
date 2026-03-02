@@ -937,7 +937,60 @@ def salvar_cronograma():
 
 
 
+# =========================
+# aba robertinho
+# =========================
 
+@app.route("/robertinho")
+def robertinho():
+    if "matricula" not in session:
+        return redirect("/")
+    return render_template("robertinho.html")
+
+@app.route("/api/robertinho")
+def api_robertinho():
+
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    hoje = date.today()
+    ano = hoje.year
+    mes = hoje.month
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # 🔹 Inspeções no mês
+    cur.execute("""
+        SELECT COUNT(*) AS total
+        FROM public.cadastros
+        WHERE ultima_inspecao IS NOT NULL
+        AND EXTRACT(MONTH FROM ultima_inspecao) = %s
+        AND EXTRACT(YEAR FROM ultima_inspecao) = %s
+    """, (mes, ano))
+
+    inspecoes = cur.fetchone()["total"]
+
+    # 🔹 Alvarás no mês
+    cur.execute("""
+        SELECT COUNT(*) AS total
+        FROM public.cadastros
+        WHERE alvara IS NOT NULL
+        AND EXTRACT(MONTH FROM alvara) = %s
+        AND EXTRACT(YEAR FROM alvara) = %s
+    """, (mes, ano))
+
+    alvaras = cur.fetchone()["total"]
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "mes": mes,
+        "ano": ano,
+        "inspecoes": inspecoes,
+        "alvaras": alvaras
+    })
 
 
 

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Produção Robertinho</title>
+
+    <link rel="stylesheet" href="/static/css/home.css">
+    <link rel="stylesheet" href="/static/css/agenda.css">
+</head>
+
+<body>
+
+<header class="navbar">
+    <div class="navbar-top">
+        <div class="navbar-logo">
+            <img src="/static/img/logo.png" alt="">
+        </div>
+
+        <div class="navbar-user">
+            {{ session.get('nome') }}
+        </div>
+
+        <a href="{{ url_for('abas') }}" class="btn btn-secondary">VOLTAR</a>
+        </a>
+    </div>
+</header>
+
+<main class="page-content">
+
+    <h2>Produção Mensal - Robertinho</h2>
+
+    <section class="card">
+
+        <form id="form-producao">
+
+        <div class="table-wrapper">
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th style="width:70%">AÇÃO</th>
+                        <th style="width:30%">QUANTIDADE</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td>Atividades Educativas para o Setor Regulado</td>
+                        <td><input type="number" name="educ_setor" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Cadastro dos Estabelecimentos</td>
+                        <td><input type="number" name="cadastros" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Inspeção de Estabelecimentos</strong></td>
+                        <td><input type="number" id="inspecoes" name="inspecoes" readonly class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Licenças / Alvarás</strong></td>
+                        <td><input type="number" id="alvaras" name="alvaras" readonly class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Atividades Educativas para a População</td>
+                        <td><input type="number" name="educ_populacao" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Recebimento de Denúncias e Reclamações</td>
+                        <td><input type="number" name="receb_denuncias" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Atendimento a Denúncias e Reclamações</td>
+                        <td><input type="number" name="atend_denuncias" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Atividade Educativa em Saúde do Trabalhador</td>
+                        <td><input type="number" name="educ_trabalhador" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Inspeção Sanitária em Saúde do Trabalhador</td>
+                        <td><input type="number" name="insp_trabalhador" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Investigação de surtos de doenças transmitidas por alimentos</td>
+                        <td><input type="number" name="surtos" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Inspeção sanitária de serviços de alimentação</td>
+                        <td><input type="number" name="insp_alimentacao" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Licenciamento sanitário de serviços de alimentação</td>
+                        <td><input type="number" name="lic_alimentacao" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Instauração de processo administrativo sanitário</td>
+                        <td><input type="number" name="insta_processo" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Conclusão de processo administrativo sanitário</td>
+                        <td><input type="number" name="conc_processo" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Inspeção sanitária de ILPI</td>
+                        <td><input type="number" name="insp_ilpi" class="form-control"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Licenciamento sanitário de ILPI</td>
+                        <td><input type="number" name="lic_ilpi" class="form-control"></td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form-actions" style="margin-top:20px; display:flex; gap:10px;">
+            <button type="button" class="btn btn-success" onclick="exportarExcel()">
+                Exportar Excel
+            </button>
+
+            <button type="submit" class="btn btn-primary">
+                Fechar Mês
+            </button>
+        </div>
+
+        </form>
+
+    </section>
+
+</main>
+
+<script>
+
+// 🔹 CARREGA AUTOMÁTICOS
+fetch("/api/robertinho")
+.then(res => res.json())
+.then(data => {
+    document.getElementById("inspecoes").value = data.inspecoes;
+    document.getElementById("alvaras").value = data.alvaras;
+});
+
+// 🔹 EXPORTAR EXCEL
+function exportarExcel() {
+
+    let tabela = document.querySelector(".results-table").outerHTML;
+
+    let arquivo = `
+        <html xmlns:x="urn:schemas-microsoft-com:office:excel">
+        <head><meta charset="UTF-8"></head>
+        <body>${tabela}</body>
+        </html>
+    `;
+
+    let blob = new Blob([arquivo], { type: "application/vnd.ms-excel" });
+    let url = URL.createObjectURL(blob);
+
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "producao_mensal.xls";
+    a.click();
+}
+
+</script>
+
+</body>
+</html>
