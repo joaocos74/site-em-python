@@ -823,6 +823,120 @@ def listar_redesim():
 
     return jsonify(dados)
     
+# =========================
+# aba cronograma
+# =========================
+
+
+def get_quadrimestre_por_mes(mes):
+    if mes in [1,2,3,4]:
+        return 1
+    elif mes in [5,6,7,8]:
+        return 2
+    return 3
+
+
+def distribuir_por_quadrimestre(estabelecimentos):
+    distribuicao = {1: [], 2: [], 3: []}
+
+    por_nivel = {}
+    for e in estabelecimentos:
+        por_nivel.setdefault(e["nivel"], []).append(e)
+
+    for nivel, lista in por_nivel.items():
+        lista.sort(key=lambda x: x["id"])
+        tamanho = len(lista)
+        bloco = tamanho // 3
+
+        distribuicao[1] += lista[0:bloco]
+        distribuicao[2] += lista[bloco:bloco*2]
+        distribuicao[3] += lista[bloco*2:]
+
+    return distribuicao
+
+
+@app.route("/cronograma")
+def cronograma():
+    if "matricula" not in session:
+        return redirect("/")
+
+    ano = request.args.get("ano", 2026)
+    return render_template("cronograma.html", ano=ano)
+
+@app.route("/api/cronograma")
+def api_cronograma():
+
+    ano = request.args.get("ano", 2026)
+    fiscal = request.args.get("fiscal")
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    sql = """
+        SELECT c.id,
+               c.nome_fantasia,
+               c.nivel,
+               c.ultima_inspecao,
+               c.fiscal_matricula,
+               cr.quadrimestre,
+               cr.mes_previsto
+        FROM public.cadastros c
+        LEFT JOIN public.cronograma_inspecoes cr
+            ON cr.cadastro_id = c.id AND cr.ano = %s
+        WHERE 1=1
+    """
+
+    valores = [ano]
+
+    if fiscal:
+        sql += " AND c.fiscal_matricula = %s"
+        valores.append(fiscal)
+
+    cur.execute(sql, valores)
+    dados = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return jsonify(dados)
+
+
+@app.route("/api/cronograma", methods=["POST"])
+def salvar_cronograma():
+
+    data = request.get_json(force=True)
+
+    cadastro_id = data.get("cadastro_id")
+    ano = data.get("ano")
+    mes = data.get("mes")
+    quadrimestre = get_quadrimestre_por_mes(int(mes))
+    fiscal = data.get("fiscal")
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO public.cronograma_inspecoes
+        (cadastro_id, ano, quadrimestre, mes_previsto, fiscal_matricula)
+        VALUES (%s,%s,%s,%s,%s)
+        ON CONFLICT (cadastro_id, ano)
+        DO UPDATE SET
+            quadrimestre = EXCLUDED.quadrimestre,
+            mes_previsto = EXCLUDED.mes_previsto,
+            fiscal_matricula = EXCLUDED.fiscal_matricula,
+            atualizado_em = now()
+    """, (cadastro_id, ano, quadrimestre, mes, fiscal))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"status": "ok"})
+
+
+
+
+
 
 
 

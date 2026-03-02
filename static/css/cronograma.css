@@ -1,0 +1,55 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f8f9fa;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.filtros {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.quadrimestre {
+    margin-bottom: 40px;
+}
+
+.quadrimestre h3 {
+    background: #003366;
+    color: white;
+    padding: 10px;
+    margin: 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    text-align: center;
+}
+
+th {
+    background: #e9ecef;
+    font-weight: bold;
+}
+
+.status-realizado {
+    background: #d4edda;
+    font-weight: bold;
+}
+
+.status-afazer {
+    background: #fff3cd;
+}
+
+select {
+    padding: 4px;
+}
