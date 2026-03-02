@@ -689,6 +689,13 @@ def buscar_cnpj_redesim():
 def salvar_redesim():
     if "matricula" not in session:
         return redirect("/")
+    
+    cnpj = request.form.get("cnpj_ou_cpf", "").strip()
+    razao_social = request.form.get("razao_social", "").strip()
+    
+    if not cnpj or not razao_social:
+        flash("CNPJ e Razão Social são obrigatórios!")
+        return redirect("/redesim")
 
     conn = get_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
