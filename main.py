@@ -827,7 +827,6 @@ def listar_redesim():
 # aba cronograma
 # =========================
 
-
 def get_quadrimestre_por_mes(mes):
     if mes in [1,2,3,4]:
         return 1
@@ -934,9 +933,6 @@ def salvar_cronograma():
 
     return jsonify({"status": "ok"})
 
-
-
-
 # =========================
 # aba robertinho
 # =========================
@@ -991,10 +987,6 @@ def api_robertinho():
         "inspecoes": inspecoes,
         "alvaras": alvaras
     })
-
-
-
-
 
 app.config.update(
     SESSION_COOKIE_SAMESITE="Lax",

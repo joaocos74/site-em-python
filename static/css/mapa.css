@@ -5,7 +5,7 @@ html, body {
 
 #map {
     height: 500px;
-    width: 500px;
+    width: 700px;
     margin: 40px auto;
-    border: 1px solid #ccc;
+    border: 1px solid #e7e7e7;
 }

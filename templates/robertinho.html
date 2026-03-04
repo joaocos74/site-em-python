@@ -6,6 +6,7 @@
 
     <link rel="stylesheet" href="/static/css/home.css">
     <link rel="stylesheet" href="/static/css/agenda.css">
+    <link rel="stylesheet" href="/static/css/analisar.css">
 </head>
 
 <body>
@@ -20,7 +21,9 @@
             {{ session.get('nome') }}
         </div>
 
-        <a href="{{ url_for('abas') }}" class="btn btn-secondary">VOLTAR</a>
+        <div class="page-header__actions">
+            <a href="{{ url_for('abas') }}" class="btn btn-secundary">Voltar</a>
+        </div>
         </a>
     </div>
 </header>
@@ -128,7 +131,7 @@
         </div>
 
         <div class="form-actions" style="margin-top:20px; display:flex; gap:10px;">
-            <button type="button" class="btn btn-success" onclick="exportarExcel()">
+            <button type="button" class="btn btn-tertiary" onclick="exportarExcel()">
                 Exportar Excel
             </button>
 

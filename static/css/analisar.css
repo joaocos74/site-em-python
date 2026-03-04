@@ -19,6 +19,7 @@
     --primary-color: #169b5b;
     --tertiary-color: #2f49c0;
     --primary-dark: #0b472a;
+    --secundary-color: #f05454;
     --border-color: #d0d7de;
     --bg-color: #f0f2f5;
     --text-color: #222;
@@ -165,33 +166,37 @@ html, body {
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
-    color: #ffffff;
-    border-color: var(--primary-color);
-}
-
-.btn-primary:hover {
-    background-color: var(--primary-dark);
-}
-
-.btn-secondary {
     background-color: #eeeeee;
     color: var(--text-color);
     border-color: var(--border-color);
 }
 
-.btn-secondary:hover {
-    background-color: #f05454;
+.btn-primary:hover {
+    background-color: var(--primary-color);
+}
+
+.btn-secundary {
+    background-color: #eeeeee;
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+.btn-secundary:hover {
+    background-color: var(--secundary-color);
+    color: #ffffff;
+    border-color: var(--secundary-color);
 }
 
 .btn-tertiary {
-    background-color: var(--tertiary-color);
-    color: #ffffff;
-    border-color: var(--primary-color);
+    background-color: #eeeeee;
+    color: var(--text-color);
+    border-color: var(--border-color);
 }
 
 .btn-tertiary:hover {
-    background-color: var(--primary-dark);
+    background-color: var(--tertiary-color);
+    color: #ffffff;
+    border-color: var(--tertiary-color);
 }
 
 

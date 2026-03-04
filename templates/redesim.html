@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <title>REDESIM - Novo Registro</title>
     <link rel="stylesheet" href="/static/css/analisar.css">
+    <link rel="stylesheet" href="/static/css/home.css">
+    <link rel="stylesheet" href="/static/css/agenda.css">
 </head>
 
 <body>
@@ -18,7 +20,7 @@
         </div>
 
         <div class="page-header__actions">
-            <a href="{{ url_for('abas') }}" class="btn btn-secondary">Voltar</a>
+            <a href="{{ url_for('abas') }}" class="btn btn-secundary">Voltar</a>
         </div>
     </header>
 
@@ -39,7 +41,7 @@
                     <div class="form-group">
                         <label>CNPJ</label>
                         <input type="text" id="buscar_cnpj">
-                        <button type="button" class="btn btn-secondary" onclick="buscarCNPJ()">Buscar</button>
+                        <button type="button" class="btn btn-primary" onclick="buscarCNPJ()">Buscar</button>
                     </div>
                 </div>
             </section>
@@ -132,7 +134,7 @@
                         </button>
 
 
-                        <button class="btn btn-secondary" onclick="exportarExcel()">
+                        <button class="btn btn-tertiary" onclick="exportarExcel()">
                             Exportar Excel
                         </button>
 

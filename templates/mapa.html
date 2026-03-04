@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="utf-8">
     <title>Mapa Leaflet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/home.css">
+    <link rel="stylesheet" href="/static/css/agenda.css">
+    <link rel="stylesheet" href="/static/css/analisar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <!-- CSS do Leaflet (OFICIAL) -->
     <link
@@ -14,18 +19,70 @@
     <!-- CSS do mapa -->
     <link rel="stylesheet" href="/static/css/mapa.css">
 </head>
-<body>
 
-    <!-- DIV DO MAPA (ID IGUAL AO EXEMPLO) -->
-    <div id="map"></div>
 
-    <!-- JS do Leaflet (OFICIAL) -->
-    <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-    </script>
+<header class="navbar">
+    <div class="navbar-top">
+        <div class="navbar-logo">
+            <img src="/static/img/logo.png" alt="">
+        </div>
 
-    <!-- Seu JS -->
-    <script src="/static/javaScript/mapa.js"></script>
+        <div class="navbar-user">
+            {{ session.get('nome') }}
+        </div>
+
+        <div class="page-header__actions">
+            <a href="{{ url_for('abas') }}" class="btn btn-secundary">Voltar</a>
+        </div>
+        </a>
+    </div>
+</header>
+
+
+    <main class="page-content">
+            <section class="card card--section">
+                <header class="card__header">
+                    <h2>ÁREAS DE COBERTURA</h2>
+                </header>
+
+            </section>
+    </main>
+
+
+
+<main class="page-content">
+        <section class="card card--section">
+          
+
+          <!-- DIV DO MAPA (ID IGUAL AO EXEMPLO) -->
+          <div id="map"></div>
+
+          <!-- JS do Leaflet (OFICIAL) -->
+          <script
+            src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+          </script>
+
+          <!-- Seu JS -->
+          <script src="/static/javaScript/mapa.js"></script>
+        </section>
+</main>
+
+
+
+    <main class="page-content">
+            <section class="card card--section">
+                <header class="card__header">
+                    <h2>Legenda: <br>
+                      estabelecimentos <i class="fa-solid fa-location-dot" style="color: rgb(99, 230, 190);"></i> em verde: inspecionados em 2026<br>
+                      estabelecimentos <i class="fa-solid fa-location-dot" style="color: rgb(5, 41, 202);"></i> em azul: não inspecionados em 2026
+                    </h2>
+                </header>
+
+            </section>
+    </main>
+
 
 </body>
 </html>
+
+
