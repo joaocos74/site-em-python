@@ -1,0 +1,40 @@
+.metric-title{
+  text-align:center;
+  font-size: 14px;
+  letter-spacing: .06em;
+  margin-bottom: 12px;
+}
+
+.metric-filters{
+  display:flex;
+  gap:12px;
+  align-items:flex-end;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin-bottom: 10px;
+}
+
+.metric-filters .form-group{
+  min-width: 160px;
+}
+
+.metric-grid{
+  display:grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.chart-box{
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 8px;
+  background: #fff;
+}
+
+.chart{ width:100%; height: 280px; }
+
+@media (max-width: 900px){
+  .metric-grid{ grid-template-columns: 1fr; }
+  .chart{ height: 260px; }
+}

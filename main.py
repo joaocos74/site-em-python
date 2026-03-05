@@ -988,6 +988,460 @@ def api_robertinho():
         "alvaras": alvaras
     })
 
+# =========================
+# ABA ESTATISTICAS
+# =========================
+# ========= ESTATÍSTICAS (modelo print) =========
+
+from datetime import date
+
+@app.route("/estatisticas")
+def estatisticas():
+    if "matricula" not in session:
+        return redirect("/")
+    return render_template("estatisticas.html")
+
+def _base_filters(req, alias_c="c", alias_cr="cr"):
+    # Nesta aba NÃO aplica regra de permissão por fiscal (conforme pedido).
+    # Fiscal/nivel/classe são apenas filtros opcionais.
+    fiscal = req.args.get("fiscal") or ""
+    nivel  = req.args.get("nivel") or ""
+    classe = req.args.get("classe") or ""
+
+    filtros = []
+    vals = []
+
+    if fiscal:
+        # pode vir do cadastros ou do cronograma (quando join)
+        filtros.append(f" AND {alias_c}.fiscal_matricula = %s ")
+        vals.append(fiscal)
+
+    if nivel:
+        filtros.append(f" AND {alias_c}.nivel = %s ")
+        vals.append(nivel)
+
+    if classe:
+        filtros.append(f" AND {alias_c}.classe = %s ")
+        vals.append(classe)
+
+    return "".join(filtros), vals
+
+@app.route("/api/estatisticas/filtros")
+def api_est_filtros():
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # anos por inspeção
+    cur.execute("""
+        SELECT DISTINCT EXTRACT(YEAR FROM c.ultima_inspecao)::int AS ano
+        FROM public.cadastros c
+        WHERE c.ultima_inspecao IS NOT NULL
+        ORDER BY ano DESC
+    """)
+    anos_inspecao = [r["ano"] for r in cur.fetchall() if r["ano"]]
+
+    # anos por cronograma
+    cur.execute("""
+        SELECT DISTINCT cr.ano::int AS ano
+        FROM public.cronograma_inspecoes cr
+        ORDER BY ano DESC
+    """)
+    anos_cronograma = [r["ano"] for r in cur.fetchall() if r["ano"]]
+
+    # anos por redesim (alvara)
+    cur.execute("""
+        SELECT DISTINCT EXTRACT(YEAR FROM r.alvara)::int AS ano
+        FROM public.redesim r
+        WHERE r.alvara IS NOT NULL
+        ORDER BY ano DESC
+    """)
+    anos_redesim = [r["ano"] for r in cur.fetchall() if r["ano"]]
+
+    # classes / niveis
+    cur.execute("""
+        SELECT DISTINCT c.classe
+        FROM public.cadastros c
+        WHERE c.classe IS NOT NULL AND c.classe <> ''
+        ORDER BY c.classe
+    """)
+    classes = [r["classe"] for r in cur.fetchall()]
+
+    cur.execute("""
+        SELECT DISTINCT c.nivel
+        FROM public.cadastros c
+        WHERE c.nivel IS NOT NULL
+        ORDER BY c.nivel
+    """)
+    niveis = [r["nivel"] for r in cur.fetchall()]
+
+    # fiscais (a partir de usuários e/ou cadastros)
+    cur.execute("""
+        SELECT DISTINCT c.fiscal_matricula AS matricula,
+               COALESCE(u.nome, 'Fiscal ' || c.fiscal_matricula) AS nome
+        FROM public.cadastros c
+        LEFT JOIN public.usuarios u ON u.matricula = c.fiscal_matricula
+        WHERE c.fiscal_matricula IS NOT NULL AND c.fiscal_matricula <> ''
+        ORDER BY nome
+    """)
+    fiscais = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "anos_inspecao": anos_inspecao,
+        "anos_cronograma": anos_cronograma,
+        "anos_redesim": anos_redesim,
+        "classes": classes,
+        "niveis": niveis,
+        "fiscais": fiscais
+    })
+
+# --------- MÉTRICAS POR ANO (cadastros) ---------
+@app.route("/api/estatisticas/por_ano")
+def api_est_por_ano():
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    ano = int(request.args.get("ano", date.today().year))
+    extra_sql, extra_vals = _base_filters(request, alias_c="c")
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cur.execute(f"""
+        SELECT COUNT(*)::int AS total
+        FROM public.cadastros c
+        WHERE 1=1 {extra_sql}
+    """, extra_vals)
+    total = cur.fetchone()["total"]
+
+    cur.execute(f"""
+        SELECT COUNT(*)::int AS feito
+        FROM public.cadastros c
+        WHERE c.ultima_inspecao IS NOT NULL
+          AND EXTRACT(YEAR FROM c.ultima_inspecao) = %s
+          {extra_sql}
+    """, [ano] + extra_vals)
+    feito = cur.fetchone()["feito"]
+
+    cur.close()
+    conn.close()
+
+    perc = round((feito / total * 100.0), 1) if total else 0.0
+
+    return jsonify({
+        "ano": ano,
+        "table": [{
+            "ano": ano,
+            "total": int(total),
+            "feito": int(feito),
+            "percentual": perc
+        }],
+        "chart": {"labels": ["INSPECIONADO", "NÃO INSPECIONADO"], "values": [int(feito), max(int(total)-int(feito), 0)]}
+    })
+
+# --------- POR CLASSE (cadastros) ---------
+@app.route("/api/estatisticas/por_classe")
+def api_est_por_classe():
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    ano = int(request.args.get("ano", date.today().year))
+    extra_sql, extra_vals = _base_filters(request, alias_c="c")
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # total por classe (universo)
+    cur.execute(f"""
+        SELECT COALESCE(NULLIF(c.classe,''), 'SEM CLASSE') AS classe,
+               COUNT(*)::int AS total
+        FROM public.cadastros c
+        WHERE 1=1 {extra_sql}
+        GROUP BY classe
+        ORDER BY total DESC
+    """, extra_vals)
+    tot = cur.fetchall()
+
+    # feito por classe (inspecionado no ano)
+    cur.execute(f"""
+        SELECT COALESCE(NULLIF(c.classe,''), 'SEM CLASSE') AS classe,
+               COUNT(*)::int AS feito
+        FROM public.cadastros c
+        WHERE c.ultima_inspecao IS NOT NULL
+          AND EXTRACT(YEAR FROM c.ultima_inspecao) = %s
+          {extra_sql}
+        GROUP BY classe
+    """, [ano] + extra_vals)
+    fei = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    fei_map = {r["classe"]: int(r["feito"]) for r in fei}
+    table = []
+    for r in tot:
+        classe = r["classe"]
+        total = int(r["total"])
+        feito = int(fei_map.get(classe, 0))
+        perc = round((feito / total * 100.0), 1) if total else 0.0
+        table.append({"classe": classe, "total": total, "feito": feito, "percentual": perc})
+
+    # gráfico: percentual por classe (top 10)
+    top = table[:10]
+    chart = {"x": [t["classe"] for t in top], "y": [t["percentual"] for t in top]}
+
+    return jsonify({"ano": ano, "table": table, "chart": chart})
+
+# --------- POR NÍVEL (cadastros) ---------
+@app.route("/api/estatisticas/por_nivel")
+def api_est_por_nivel():
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    ano = int(request.args.get("ano", date.today().year))
+    extra_sql, extra_vals = _base_filters(request, alias_c="c")
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cur.execute(f"""
+        SELECT c.nivel, COUNT(*)::int AS total
+        FROM public.cadastros c
+        WHERE c.nivel IS NOT NULL {extra_sql}
+        GROUP BY c.nivel
+        ORDER BY c.nivel
+    """, extra_vals)
+    tot = cur.fetchall()
+
+    cur.execute(f"""
+        SELECT c.nivel, COUNT(*)::int AS feito
+        FROM public.cadastros c
+        WHERE c.nivel IS NOT NULL
+          AND c.ultima_inspecao IS NOT NULL
+          AND EXTRACT(YEAR FROM c.ultima_inspecao) = %s
+          {extra_sql}
+        GROUP BY c.nivel
+        ORDER BY c.nivel
+    """, [ano] + extra_vals)
+    fei = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    fei_map = {str(r["nivel"]): int(r["feito"]) for r in fei}
+    table = []
+    for r in tot:
+        nivel = str(r["nivel"])
+        total = int(r["total"])
+        feito = int(fei_map.get(nivel, 0))
+        perc = round((feito / total * 100.0), 1) if total else 0.0
+        table.append({"nivel": nivel, "total": total, "feito": feito, "percentual": perc})
+
+    # gráfico pizza: participação dos feitos por nível (só entre os feitos)
+    labels = [f"Nível {t['nivel']}" for t in table]
+    values = [t["feito"] for t in table]
+
+    return jsonify({"ano": ano, "table": table, "chart": {"labels": labels, "values": values}})
+
+# --------- QUADRIMESTRE (cronograma_inspecoes) ---------
+@app.route("/api/estatisticas/por_quadrimestre")
+def api_est_por_quadrimestre():
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    ano = int(request.args.get("ano", date.today().year))
+    quadr = request.args.get("quadrimestre")  # 1/2/3 ou vazio
+
+    # filtros base via cadastros, mas fiscal aqui deve ser do CRONOGRAMA também
+    fiscal = request.args.get("fiscal") or ""
+    nivel  = request.args.get("nivel") or ""
+    classe = request.args.get("classe") or ""
+
+    filtros = ["cr.ano = %s"]
+    vals = [ano]
+
+    if quadr:
+        filtros.append("cr.quadrimestre = %s")
+        vals.append(int(quadr))
+    if fiscal:
+        filtros.append("cr.fiscalmatricula = %s")
+        vals.append(fiscal)
+    if nivel:
+        filtros.append("c.nivel = %s")
+        vals.append(nivel)
+    if classe:
+        filtros.append("c.classe = %s")
+        vals.append(classe)
+
+    where = " AND ".join(filtros)
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # total a fazer por quadrimestre
+    cur.execute(f"""
+        SELECT cr.quadrimestre::int AS quadrimestre,
+               COUNT(*)::int AS total_a_fazer
+        FROM public.cronograma_inspecoes cr
+        JOIN public.cadastros c ON c.id = cr.cadastro_id
+        WHERE {where}
+        GROUP BY cr.quadrimestre
+        ORDER BY cr.quadrimestre
+    """, vals)
+    tot_rows = cur.fetchall()
+
+    # total feito por quadrimestre (inspeção no quadrimestre do ano)
+    cur.execute(f"""
+        SELECT cr.quadrimestre::int AS quadrimestre,
+               COUNT(*)::int AS total_feito
+        FROM public.cronograma_inspecoes cr
+        JOIN public.cadastros c ON c.id = cr.cadastro_id
+        WHERE {where}
+          AND c.ultima_inspecao IS NOT NULL
+          AND EXTRACT(YEAR FROM c.ultima_inspecao) = %s
+          AND (
+            (cr.quadrimestre = 1 AND EXTRACT(MONTH FROM c.ultima_inspecao) BETWEEN 1 AND 4) OR
+            (cr.quadrimestre = 2 AND EXTRACT(MONTH FROM c.ultima_inspecao) BETWEEN 5 AND 8) OR
+            (cr.quadrimestre = 3 AND EXTRACT(MONTH FROM c.ultima_inspecao) BETWEEN 9 AND 12)
+          )
+        GROUP BY cr.quadrimestre
+        ORDER BY cr.quadrimestre
+    """, vals + [ano])
+    fei_rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    tot_map = {int(r["quadrimestre"]): int(r["total_a_fazer"]) for r in tot_rows}
+    fei_map = {int(r["quadrimestre"]): int(r["total_feito"]) for r in fei_rows}
+
+    table = []
+    for q in (1, 2, 3):
+        total = tot_map.get(q, 0)
+        feito = fei_map.get(q, 0)
+        perc = round((feito / total * 100.0), 1) if total else 0.0
+        table.append({"quadrimestre": q, "total": total, "feito": feito, "percentual": perc})
+
+    if quadr:
+        q = int(quadr)
+        total = tot_map.get(q, 0)
+        feito = fei_map.get(q, 0)
+    else:
+        total = sum(tot_map.values())
+        feito = sum(fei_map.values())
+
+    return jsonify({
+        "ano": ano,
+        "table": table,
+        "chart": {"labels": ["FEITO", "A FAZER"], "values": [feito, max(total-feito, 0)]}
+    })
+
+# --------- MÊS (cronograma_inspecoes) ---------
+@app.route("/api/estatisticas/por_mes")
+def api_est_por_mes():
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    ano = int(request.args.get("ano", date.today().year))
+    mes = int(request.args.get("mes", date.today().month))
+
+    fiscal = request.args.get("fiscal") or ""
+    nivel  = request.args.get("nivel") or ""
+    classe = request.args.get("classe") or ""
+
+    filtros = ["cr.ano = %s", "cr.mes_previsto = %s"]
+    vals = [ano, mes]
+
+    if fiscal:
+        filtros.append("cr.fiscalmatricula = %s")
+        vals.append(fiscal)
+    if nivel:
+        filtros.append("c.nivel = %s")
+        vals.append(nivel)
+    if classe:
+        filtros.append("c.classe = %s")
+        vals.append(classe)
+
+    where = " AND ".join(filtros)
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cur.execute(f"""
+        SELECT COUNT(*)::int AS total_a_fazer
+        FROM public.cronograma_inspecoes cr
+        JOIN public.cadastros c ON c.id = cr.cadastro_id
+        WHERE {where}
+    """, vals)
+    total = cur.fetchone()["total_a_fazer"]
+
+    cur.execute(f"""
+        SELECT COUNT(*)::int AS total_feito
+        FROM public.cronograma_inspecoes cr
+        JOIN public.cadastros c ON c.id = cr.cadastro_id
+        WHERE {where}
+          AND c.ultima_inspecao IS NOT NULL
+          AND EXTRACT(YEAR FROM c.ultima_inspecao) = %s
+          AND EXTRACT(MONTH FROM c.ultima_inspecao) = %s
+    """, vals + [ano, mes])
+    feito = cur.fetchone()["total_feito"]
+
+    cur.close()
+    conn.close()
+
+    perc = round((feito / total * 100.0), 1) if total else 0.0
+
+    return jsonify({
+        "ano": ano,
+        "mes": mes,
+        "table": [{"mes": mes, "total": int(total), "feito": int(feito), "percentual": perc}],
+        "chart": {"labels": ["FEITO", "A FAZER"], "values": [int(feito), max(int(total)-int(feito), 0)]}
+    })
+
+# --------- REDESIM por CLASSE ---------
+@app.route("/api/estatisticas/redesim_por_classe")
+def api_est_redesim_por_classe():
+    if "matricula" not in session:
+        return jsonify({"error": "não autenticado"}), 401
+
+    ano = int(request.args.get("ano", date.today().year))
+    classe = request.args.get("classe") or ""
+
+    filtros = ["r.alvara IS NOT NULL", "EXTRACT(YEAR FROM r.alvara) = %s"]
+    vals = [ano]
+
+    if classe:
+        filtros.append("r.classe = %s")
+        vals.append(classe)
+
+    where = " AND ".join(filtros)
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"""
+        SELECT COALESCE(NULLIF(r.classe,''), 'SEM CLASSE') AS classe,
+               COUNT(*)::int AS total
+        FROM public.redesim r
+        WHERE {where}
+        GROUP BY classe
+        ORDER BY total DESC
+    """, vals)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "ano": ano,
+        "table": rows,
+        "chart": {"x": [r["classe"] for r in rows[:10]], "y": [r["total"] for r in rows[:10]]}
+    })
+    
+    
 app.config.update(
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=False,  # localhost usa http
