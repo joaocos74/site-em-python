@@ -8,13 +8,16 @@
 </head>
 
 <body>
+
     <header class="page-header">
         <div class="navbar-logo">
             <img src="/static/img/logo.png" alt="" />
         </div>
+
         <div class="page-header__title">
             <h1>VIGILÂNCIA SANITÁRIA DE TAIOBEIRAS</h1>
         </div>
+
         <div class="page-header__actions">
             <a href="{{ url_for('abas') }}" class="btn btn-secundary">Voltar</a>
             <button type="button" class="btn btn-tertiary" onclick="window.print()">Imprimir</button>
@@ -24,51 +27,57 @@
 
     <main class="page-content">
         <form id="form-editar" method="POST">
+
+            <!-- ========================= -->
+            <!-- DADOS DO ESTABELECIMENTO -->
+            <!-- ========================= -->
             <section class="card card--section">
                 <header class="card__header">
                     <h2>Dados do Estabelecimento</h2>
+
                     <div class="info-header">
                         <p>ID: <strong>{{ licenca.id }}</strong></p>
                         <p>Nome Fantasia: <strong>{{ licenca.nome_fantasia }}</strong></p>
                     </div>
-
                 </header>
+
                 <div class="card__body">
                     <div class="form-grid-2">
-                        <div class="form-group form-group--full">
-                            <label for="razao_social">Nome Empresarial</label>
-                            <input type="text" id="razao_social" name="razao_social"
-                                value="{{ licenca.razao_social or '' }}">
-                        </div>
 
                         <div class="form-group form-group--full">
-                            <label for="nome_fantasia">Nome Fantasia</label>
-                            <input type="text" id="nome_fantasia" name="nome_fantasia"
-                                value="{{ licenca.nome_fantasia or '' }}">
+                            <label>Nome Empresarial</label>
+                            <input type="text" name="razao_social" value="{{ licenca.razao_social or '' }}">
+                        </div>
+
+                        <div class="form-group form-group--full">
+                            <label>Nome Fantasia</label>
+                            <input type="text" name="nome_fantasia" value="{{ licenca.nome_fantasia or '' }}">
+                        </div>
+                        
+                        <div class="form-group form-group--full">
+                            <label>Endereço</label>
+                            <input type="text" name="endereco" value="{{ licenca.endereco or '' }}">
                         </div>
 
                         <div class="form-group">
-                            <label for="nivel">Nível</label>
-                            <input type="text" id="nivel" name="nivel" value="{{ licenca.nivel or '' }}">
+                            <label>Nível</label>
+                            <input type="text" name="nivel" value="{{ licenca.nivel or '' }}">
                         </div>
 
                         <div class="form-group">
-                            <label for="classe">Classe</label>
-                            <input type="text" id="classe" name="classe" value="{{ licenca.classe or '' }}">
+                            <label>Classe</label>
+                            <input type="text" name="classe" value="{{ licenca.classe or '' }}">
                         </div>
 
                         <div class="form-group">
-                            <label for="cnpj_ou_cpf">CNPJ</label>
-                            <input type="text" id="cnpj_ou_cpf" name="cnpj_ou_cpf"
-                                value="{{ licenca.cnpj_ou_cpf or '' }}">
+                            <label>CNPJ</label>
+                            <input type="text" name="cnpj_ou_cpf" value="{{ licenca.cnpj_ou_cpf or '' }}">
                         </div>
 
                         <div class="form-group">
-                            <label for="cnae_principal">CNAE Principal</label>
-                            <input type="text" id="cnae_principal" name="cnae_principal"
-                                value="{{ licenca.cnae_principal or '' }}">
+                            <label>CNAE Principal</label>
+                            <input type="text" name="cnae_principal" value="{{ licenca.cnae_principal or '' }}">
                         </div>
-
 
                         <div class="form-group form-group--full">
                             <div class="date-section">
@@ -95,14 +104,161 @@
                         </div>
 
                         <div class="form-group form-group--full">
-                            <label for="observacoes">Observações</label>
-                            <textarea id="observacoes" name="observacoes"
-                                rows="3">{{ licenca.observacoes or '' }}</textarea>
+                            <label>Observações</label>
+                            <textarea name="observacoes" rows="3">{{ licenca.observacoes or '' }}</textarea>
                         </div>
+
                     </div>
                 </div>
             </section>
 
+            <!-- ========================= -->
+            <!-- RESPONSÁVEL -->
+            <!-- ========================= -->
+            <section class="card card--section">
+                <header class="card__header">
+                    <h2>Responsável pelo Estabelecimento</h2>
+                </header>
+
+                <div class="card__body">
+                    <div class="form-grid-2">
+
+                        <div class="form-group">
+                            <label>Nome</label>
+                            <input type="text" name="resp_nome"
+                                value="{{ responsavel.nome if responsavel else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>CPF</label>
+                            <input type="text" name="resp_cpf"
+                                value="{{ responsavel.cpf if responsavel else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nacionalidade</label>
+                            <input type="text" name="resp_nacionalidade"
+                                value="{{ responsavel.nacionalidade if responsavel else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Naturalidade</label>
+                            <input type="text" name="resp_naturalidade"
+                                value="{{ responsavel.naturalidade if responsavel else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Estado Civil</label>
+                            <input type="text" name="resp_estado_civil"
+                                value="{{ responsavel.estado_civil if responsavel else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Profissão</label>
+                            <input type="text" name="resp_profissao"
+                                value="{{ responsavel.profissao if responsavel else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Identidade</label>
+                            <input type="text" name="resp_identidade"
+                                value="{{ responsavel.identidade if responsavel else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Telefone</label>
+                            <input type="text" name="resp_telefone"
+                                value="{{ responsavel.telefone if responsavel else '' }}">
+                        </div>
+
+                        <div class="form-group form-group--full">
+                            <label>Endereço</label>
+                            <input type="text" name="resp_endereco"
+                                value="{{ responsavel.endereco if responsavel else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>CEP</label>
+                            <input type="text" name="resp_cep"
+                                value="{{ responsavel.cep if responsavel else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Município</label>
+                            <input type="text" name="resp_municipio"
+                                value="{{ responsavel.municipio if responsavel else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>UF</label>
+                            <input type="text" name="resp_uf"
+                                value="{{ responsavel.uf if responsavel else '' }}">
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================= -->
+            <!-- RESPONSÁVEL TÉCNICO -->
+            <!-- ========================= -->
+            <section class="card card--section">
+                <header class="card__header">
+                    <h2>Responsável Técnico</h2>
+                </header>
+
+                <div class="card__body">
+                    <div class="form-grid-2">
+
+                        <div class="form-group">
+                            <label>Nome</label>
+                            <input type="text" name="rt_nome"
+                                value="{{ responsavel_tecnico.nome if responsavel_tecnico else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Inscrição</label>
+                            <input type="text" name="rt_inscricao"
+                                value="{{ responsavel_tecnico.inscricao if responsavel_tecnico else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Telefone</label>
+                            <input type="text" name="rt_telefone"
+                                value="{{ responsavel_tecnico.telefone if responsavel_tecnico else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>CEP</label>
+                            <input type="text" name="rt_cep"
+                                value="{{ responsavel_tecnico.cep if responsavel_tecnico else '' }}">
+                        </div>
+
+                        <div class="form-group form-group--full">
+                            <label>Endereço</label>
+                            <input type="text" name="rt_endereco"
+                                value="{{ responsavel_tecnico.endereco if responsavel_tecnico else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Município</label>
+                            <input type="text" name="rt_municipio"
+                                value="{{ responsavel_tecnico.municipio if responsavel_tecnico else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>UF</label>
+                            <input type="text" name="rt_uf"
+                                value="{{ responsavel_tecnico.uf if responsavel_tecnico else '' }}">
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================= -->
+            <!-- FISCAL -->
+            <!-- ========================= -->
             <section class="card card--section">
                 <header class="card__header">
                     <h2>Fiscal Responsável pelo estabelecimento</h2>
@@ -132,11 +288,109 @@
                 </div>
             </section>
 
-            <!-- Outras seções podem seguir o mesmo padrão, se precisar -->
+            <!-- ========================= -->
+            <!-- DOCUMENTOS -->
+            <!-- ========================= -->
+            <section class="card card--section">
+                <header class="card__header">
+                    <h2>Documentos</h2>
+                </header>
+
+                <div class="card__body">
+
+                    <!-- BOTÕES -->
+                    <div class="document-actions">
+
+                        <a href="/licencas/{{ licenca.id }}/auto" class="btn btn-primary">
+                            Gerar Auto/Termo
+                        </a>
+
+                        <button type="button" onclick="gerarNotificacao({{ licenca.id }})" class="btn btn-primary">
+                            Gerar Notificação
+                        </button>
+
+                        <a href="/licencas/{{ licenca.id }}/relatorio" class="btn btn-tertiary">
+                            Relatório de Inspeção
+                        </a>
+
+                    </div>
+
+                    <!-- ========================= -->
+                    <!-- HISTÓRICO NOTIFICAÇÕES -->
+                    <!-- ========================= -->
+                    <div class="history-section">
+                        <h3>Histórico de Notificações</h3>
+
+                        {% if notificacoes %}
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Data</th>
+                                        <th>Fiscal</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for n in notificacoes %}
+                                    <tr>
+                                        <td>{{ n.id }}</td>
+                                        <td>{{ n.data }}</td>
+                                        <td>{{ n.fiscal }}</td>
+                                        <td>
+                                            <a href="/notificacao/{{ n.id }}" class="btn btn-small">Ver</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="empty">Nenhuma notificação registrada</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- ========================= -->
+                    <!-- HISTÓRICO RELATÓRIOS -->
+                    <!-- ========================= -->
+                    <div class="history-section">
+                        <h3>Histórico de Relatórios de Inspeção</h3>
+
+                        {% if relatorios %}
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Data</th>
+                                        <th>Fiscal</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in relatorios %}
+                                    <tr>
+                                        <td>{{ r.id }}</td>
+                                        <td>{{ r.data }}</td>
+                                        <td>{{ r.fiscal }}</td>
+                                        <td>
+                                            <a href="/relatorio/{{ r.id }}" class="btn btn-small">Ver</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="empty">Nenhum relatório registrado</p>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </section>
+
+
         </form>
     </main>
 
-    <script src="/static/js/analisar.js"></script>
-</body>
+    <script src="/static/javaScript/analisar.js"></script>
 
+</body>
 </html>

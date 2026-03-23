@@ -14,12 +14,11 @@ app.config['SECRET_KEY'] = 'joao_paulo_seguro'
 # =========================
 def get_connection():
     conn = psycopg2.connect(
-        host=os.getenv("DB_HOST", "aws-0-us-west-2.pooler.supabase.com"),
-        port=os.getenv("DB_PORT", 5432),
-        database=os.getenv("DB_NAME", "postgres"),
-        user=os.getenv("DB_USER", "postgres.bizolwxybpgrlbpvjzaq"),
-        password=os.getenv("DB_PASSWORD", "A6Y0bU1s3nb13YB1"),
-        sslmode="require"
+        host=os.getenv("DB_HOST", "localhost"),
+        port=os.getenv("DB_PORT", 5433),
+        database=os.getenv("DB_NAME", "sistema_vigilancia"),
+        user=os.getenv("DB_USER", "postgres"),
+        password=os.getenv("DB_PASSWORD", "visaTaio@2026")
     )
     return conn
 
@@ -251,6 +250,9 @@ def analisar_licenca(licenca_id):
     # =========================
     if request.method == "POST":
 
+        # =========================
+        # UPDATE CADASTRO (SEU ORIGINAL)
+        # =========================
         cur.execute("""
             UPDATE public.cadastros SET
                 razao_social = %s,
@@ -258,6 +260,7 @@ def analisar_licenca(licenca_id):
                 nivel = %s,
                 classe = %s,
                 cnpj_ou_cpf = %s,
+                endereco = %s,
                 cnae_principal = %s,
                 ultima_inspecao = %s,
                 alvara = %s,
@@ -272,6 +275,7 @@ def analisar_licenca(licenca_id):
             request.form.get("nivel"),
             request.form.get("classe"),
             request.form.get("cnpj_ou_cpf"),
+            request.form.get("endereco"),
             request.form.get("cnae_principal"),
             request.form.get("ultima_inspecao") or None,
             request.form.get("alvara") or None,
@@ -281,6 +285,110 @@ def analisar_licenca(licenca_id):
             request.form.get("observacoes"),
             licenca_id
         ))
+
+        # =========================
+        # RESPONSÁVEL
+        # =========================
+        cur.execute("SELECT id FROM responsavel WHERE cadastro_id = %s", (licenca_id,))
+        resp = cur.fetchone()
+
+        if resp:
+            cur.execute("""
+                UPDATE responsavel SET
+                    nome=%s,
+                    nacionalidade=%s,
+                    naturalidade=%s,
+                    estado_civil=%s,
+                    identidade=%s,
+                    profissao=%s,
+                    cpf=%s,
+                    endereco=%s,
+                    telefone=%s,
+                    cep=%s,
+                    municipio=%s,
+                    uf=%s
+                WHERE cadastro_id=%s
+            """, (
+                request.form.get("resp_nome"),
+                request.form.get("resp_nacionalidade"),
+                request.form.get("resp_naturalidade"),
+                request.form.get("resp_estado_civil"),
+                request.form.get("resp_identidade"),
+                request.form.get("resp_profissao"),
+                request.form.get("resp_cpf"),
+                request.form.get("resp_endereco"),
+                request.form.get("resp_telefone"),
+                request.form.get("resp_cep"),
+                request.form.get("resp_municipio"),
+                request.form.get("resp_uf"),
+                licenca_id
+            ))
+        else:
+            cur.execute("""
+                INSERT INTO responsavel (
+                    cadastro_id, nome, nacionalidade, naturalidade,
+                    estado_civil, identidade, profissao, cpf,
+                    endereco, telefone, cep, municipio, uf
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                licenca_id,
+                request.form.get("resp_nome"),
+                request.form.get("resp_nacionalidade"),
+                request.form.get("resp_naturalidade"),
+                request.form.get("resp_estado_civil"),
+                request.form.get("resp_identidade"),
+                request.form.get("resp_profissao"),
+                request.form.get("resp_cpf"),
+                request.form.get("resp_endereco"),
+                request.form.get("resp_telefone"),
+                request.form.get("resp_cep"),
+                request.form.get("resp_municipio"),
+                request.form.get("resp_uf")
+            ))
+
+        # =========================
+        # RESPONSÁVEL TÉCNICO
+        # =========================
+        cur.execute("SELECT id FROM responsavel_tecnico WHERE cadastro_id = %s", (licenca_id,))
+        rt = cur.fetchone()
+
+        if rt:
+            cur.execute("""
+                UPDATE responsavel_tecnico SET
+                    nome=%s,
+                    inscricao=%s,
+                    endereco=%s,
+                    telefone=%s,
+                    cep=%s,
+                    municipio=%s,
+                    uf=%s
+                WHERE cadastro_id=%s
+            """, (
+                request.form.get("rt_nome"),
+                request.form.get("rt_inscricao"),
+                request.form.get("rt_endereco"),
+                request.form.get("rt_telefone"),
+                request.form.get("rt_cep"),
+                request.form.get("rt_municipio"),
+                request.form.get("rt_uf"),
+                licenca_id
+            ))
+        else:
+            cur.execute("""
+                INSERT INTO responsavel_tecnico (
+                    cadastro_id, nome, inscricao,
+                    endereco, telefone, cep, municipio, uf
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                licenca_id,
+                request.form.get("rt_nome"),
+                request.form.get("rt_inscricao"),
+                request.form.get("rt_endereco"),
+                request.form.get("rt_telefone"),
+                request.form.get("rt_cep"),
+                request.form.get("rt_municipio"),
+                request.form.get("rt_uf")
+            ))
 
         conn.commit()
         cur.close()
@@ -294,13 +402,24 @@ def analisar_licenca(licenca_id):
     cur.execute("SELECT * FROM public.cadastros WHERE id = %s", (licenca_id,))
     licenca = cur.fetchone()
 
+    cur.execute("SELECT * FROM responsavel WHERE cadastro_id = %s", (licenca_id,))
+    responsavel = cur.fetchone()
+
+    cur.execute("SELECT * FROM responsavel_tecnico WHERE cadastro_id = %s", (licenca_id,))
+    responsavel_tecnico = cur.fetchone()
+
     cur.close()
     conn.close()
 
     if not licenca:
         return "Registro não encontrado", 404
 
-    return render_template("analisar.html", licenca=licenca)
+    return render_template(
+        "analisar.html",
+        licenca=licenca,
+        responsavel=responsavel,
+        responsavel_tecnico=responsavel_tecnico
+    )
 
     # =========================
     # PAGINA DE CADASTRO DE NOVO ESTABELECIMENTO
@@ -316,10 +435,10 @@ def novo_cadastro():
 
         cur.execute("""
             INSERT INTO public.cadastros
-            (razao_social, nome_fantasia, nivel, classe, cnpj_ou_cpf, cnae_principal,
+            (razao_social, nome_fantasia, nivel, classe, cnpj_ou_cpf, endereco, cnae_principal,
              ultima_inspecao, alvara, vigi_risco, fiscal_responsavel, fiscal_matricula,
              observacoes)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             RETURNING id
         """, (
             request.form.get("razao_social"),
@@ -327,6 +446,7 @@ def novo_cadastro():
             request.form.get("nivel"),
             request.form.get("classe"),
             request.form.get("cnpj_ou_cpf"),
+            request.form.get("endereco"),
             request.form.get("cnae_principal"),
             request.form.get("ultima_inspecao") or None,
             request.form.get("alvara") or None,
@@ -1446,13 +1566,90 @@ app.config.update(
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=False,  # localhost usa http
 )
+# --------- ANALISAR GERAR AUTO TERMO E NOTIFICAÇÃO ---------
+@app.route("/notificacao/<int:id>")
+def abrir_notificacao(id):
 
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
+    # 🔹 DADOS DO ESTABELECIMENTO
+    cur.execute("""
+        SELECT *
+        FROM cadastros
+        WHERE id = %s
+    """, (id,))
+    cadastro = cur.fetchone()
 
+    # 🔹 PROPRIETÁRIO / RESPONSÁVEL
+    cur.execute("""
+        SELECT *
+        FROM responsavel
+        WHERE cadastro_id = %s
+        LIMIT 1
+    """, (id,))
+    responsavel = cur.fetchone()
 
+    # 🔹 RESPONSÁVEL TÉCNICO
+    cur.execute("""
+        SELECT *
+        FROM responsavel_tecnico
+        WHERE cadastro_id = %s
+        LIMIT 1
+    """, (id,))
+    rt = cur.fetchone()
+
+    cur.close()
+    conn.close()
+
+    from datetime import datetime
+    hoje = datetime.now()
+
+    return render_template("notificacao.html",
+
+        licenca_id=id,
+
+        # 🔢 número vazio (JS vai preencher)
+        numero_notificacao="",
+
+        # 📍 CAMPOS AUTOMÁTICOS
+        campo_02="SRS Montes Claros",
+        campo_03="Taiobeiras",
+
+        campo_04=cadastro.get("nome_fantasia"),
+        campo_05=cadastro.get("razao_social"),
+        campo_06=cadastro.get("cnpj_ou_cpf"),
+        campo_08=cadastro.get("cnae_principal"),
+        campo_09=cadastro.get("edereco"),
+
+        campo_12="Taiobeiras",
+        campo_13="MG",
+
+        # 👤 RESPONSÁVEL
+        campo_14=responsavel.get("nome") if responsavel else "",
+        campo_20=responsavel.get("cpf") if responsavel else "",
+        campo_21=responsavel.get("endereco") if responsavel else "",
+        campo_22=responsavel.get("telefone") if responsavel else "",
+
+        # 🧪 RESPONSÁVEL TÉCNICO
+        campo_26=rt.get("nome") if rt else "",
+        campo_27=rt.get("registro") if rt else "",
+        campo_28=rt.get("endereco") if rt else "",
+        campo_29=rt.get("telefone") if rt else "",
+
+        # 📅 DATA
+        campo_38_dia=hoje.strftime("%d"),
+        campo_38_mes=hoje.strftime("%m"),
+        campo_38_ano=hoje.strftime("%Y"),
+
+        # 👮 FISCAL
+        campo_34_nome_1=cadastro.get("fiscal_responsavel"),
+        campo_35_matricula_1=cadastro.get("fiscal_matricula"),
+        campo_36_cargo_1="Fiscal Sanitário"
+    )
 # =========================
 if __name__ == "__main__":
-    app.run()
+    app.run(host="127.0.0.1", port=8080, debug=True)
 
 
 

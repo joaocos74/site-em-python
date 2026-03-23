@@ -1,0 +1,239 @@
+/* =============================================================
+   documentos.css
+   Estilos compartilhados: Auto/Termo e Notificação
+   Layout fiel aos formulários oficiais da Vigilância Sanitária
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Noto Sans', Arial, sans-serif;
+    background: #e8e8e8;
+    color: #000;
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+/* ===== BARRA DE AÇÕES (topo fixo) ===== */
+.action-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: #1a3a5c; color: #fff;
+    padding: 10px 20px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.action-bar button,
+.action-bar a.action-btn {
+    padding: 8px 22px; border: none; border-radius: 4px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: opacity 0.2s; text-decoration: none; color: #fff;
+}
+.action-bar button:hover,
+.action-bar a.action-btn:hover { opacity: 0.85; }
+
+.btn-salvar   { background: #1565c0; }
+.btn-imprimir { background: #2e7d32; }
+.btn-add-auth { background: #f57c00; }
+
+/* ===== PÁGINA A4 ===== */
+.page-wrapper { margin: 70px auto 30px; max-width: 210mm; }
+
+.page {
+    width: 210mm; min-height: 297mm;
+    background: #fff; padding: 10mm 12mm 8mm;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    position: relative;
+}
+
+/* ===== CABEÇALHO ===== */
+.doc-header {
+    text-align: center; margin-bottom: 4px;
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+}
+
+.doc-header__logo { width: 70px; height: 70px; flex-shrink: 0; }
+.doc-header__logo img { width: 100%; height: 100%; object-fit: contain; }
+
+.doc-header__text h1 { font-size: 16px; font-weight: 700; margin-bottom: 1px; }
+.doc-header__text h2 { font-size: 14px; font-weight: 600; margin-bottom: 1px; }
+.doc-header__text h3 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.doc-header__text h4 { font-size: 14px; font-weight: 700; letter-spacing: 2px; }
+
+.doc-title-row {
+    display: flex; align-items: baseline; justify-content: center; gap: 40px;
+}
+.doc-title-row h4 { text-decoration: underline; }
+.doc-title-row .doc-numero { font-size: 13px; font-weight: 600; }
+
+/* ===== TABELA PRINCIPAL DO FORMULÁRIO ===== */
+.form-table {
+    width: 100%; border-collapse: collapse;
+    border: 1.5px solid #000; table-layout: fixed;
+}
+.form-table td {
+    border: 1px solid #000; padding: 2px 4px; vertical-align: top;
+}
+
+/* Label lateral vertical (ESTABELECIMENTO, PROPRIETÁRIO, etc.) */
+.form-table .section-label {
+    width: 28px; text-align: center; vertical-align: middle;
+    font-weight: 700; font-size: 8px; letter-spacing: 0.5px;
+    writing-mode: vertical-lr; text-orientation: mixed;
+    transform: rotate(180deg); line-height: 1.1;
+    background: #f8f8f8;
+}
+
+.field-label {
+    font-size: 8px; font-weight: 600; color: #333;
+    display: block; margin-bottom: 1px; white-space: nowrap;
+}
+
+.field-value {
+    font-size: 11px; min-height: 16px; padding: 1px 2px;
+    display: block; word-break: break-word;
+}
+
+/* ===== CAMPOS EDITÁVEIS ===== */
+.field-editable {
+    outline: none; border: none; width: 100%;
+    font-size: 11px; font-family: inherit;
+    background: transparent; min-height: 16px;
+    padding: 1px 2px; resize: vertical;
+}
+.field-editable:focus { background: #fffde7; }
+
+/* ===== SEÇÕES (campo 33, 36, 37...) ===== */
+.section-box {
+    width: 100%; border: 1.5px solid #000;
+    border-collapse: collapse; margin-top: -1px;
+}
+.section-box td {
+    border: 1px solid #000; padding: 4px 6px; vertical-align: top;
+}
+
+.section-full {
+    width: 100%; border: 1.5px solid #000;
+    margin-top: -1px; padding: 4px 6px;
+}
+
+/* ===== AUTO/TERMO: Grid 34/35 ===== */
+.auto-termo-grid {
+    width: 100%; border: 1.5px solid #000;
+    border-collapse: collapse; margin-top: -1px;
+}
+.auto-termo-grid td {
+    border: 1px solid #000; padding: 4px 6px;
+    vertical-align: top; width: 50%;
+}
+
+.checkbox-area {
+    display: inline-flex; align-items: center; gap: 4px; margin-right: 4px;
+}
+.checkbox-area input[type="checkbox"] {
+    width: 14px; height: 14px; accent-color: #000;
+}
+
+/* ===== NOTIFICAÇÃO: Tabela de autoridades ===== */
+.auth-table {
+    width: 100%; border-collapse: collapse;
+    border: 1.5px solid #000; margin-top: -1px;
+}
+.auth-table th, .auth-table td {
+    border: 1px solid #000; padding: 3px 6px;
+    text-align: left; font-size: 10px;
+}
+.auth-table th {
+    font-size: 8px; font-weight: 700; background: #f8f8f8;
+}
+
+/* ===== ASSINATURAS ===== */
+.section-signatures {
+    width: 100%; border: 1.5px solid #000;
+    margin-top: -1px; padding: 8px 6px;
+}
+
+.sig-row {
+    display: flex; align-items: flex-end; gap: 10px; margin-bottom: 14px;
+}
+.sig-col { flex: 1; text-align: center; }
+.sig-line {
+    border-bottom: 1px solid #000; min-height: 20px; margin-bottom: 2px;
+}
+.sig-label {
+    font-size: 8px; font-weight: 600; text-transform: uppercase; color: #333;
+}
+.sig-editable {
+    border-bottom: 1px solid #000; min-height: 20px; margin-bottom: 2px;
+    outline: none; font-size: 11px; font-family: inherit;
+    text-align: center; display: block; width: 100%;
+}
+.sig-editable:focus { background: #fffde7; }
+
+.date-row {
+    display: flex; align-items: flex-end; gap: 10px; margin-top: 10px;
+}
+.date-col        { text-align: center; }
+.date-col--data  { flex: 0 0 180px; }
+.date-col--hora  { flex: 0 0 130px; }
+.date-col--sig   { flex: 1; }
+
+/* ===== TESTEMUNHAS (notificação) ===== */
+.section-testemunhas {
+    width: 100%; border: 1.5px solid #000;
+    margin-top: -1px; padding: 6px 6px;
+}
+.testemunha-block { margin-bottom: 8px; }
+.testemunha-row {
+    display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;
+}
+.testemunha-row .label-inline {
+    font-size: 10px; font-weight: 600; white-space: nowrap;
+}
+.testemunha-row .line-field {
+    flex: 1; border-bottom: 1px solid #000;
+    min-height: 16px; font-size: 11px;
+}
+
+/* ===== BOTÕES DINÂMICOS ===== */
+.btn-add {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 12px; background: #fff; border: 1.5px solid #1a3a5c;
+    border-radius: 3px; color: #1a3a5c; font-size: 9px;
+    font-weight: 600; cursor: pointer; margin-top: 3px; transition: 0.15s;
+}
+.btn-add:hover { background: #1a3a5c; color: #fff; }
+.btn-rm {
+    background: #c62828; color: #fff; border: none; border-radius: 3px;
+    font-size: 10px; padding: 2px 8px; cursor: pointer;
+}
+
+.dynamic-auth-block {
+    border-top: 1px dashed #999; padding-top: 10px;
+    margin-top: 6px; position: relative;
+}
+.dynamic-auth-block .btn-rm {
+    position: absolute; top: 2px; right: 0;
+}
+
+/* ===== RODAPÉ ===== */
+.doc-footer {
+    text-align: center; margin-top: 6px; padding-top: 4px;
+    border-top: 2px solid #000; font-size: 10px;
+    color: #333; line-height: 1.4;
+}
+
+/* ===== IMPRESSÃO A4 ===== */
+@media print {
+    @page { size: A4 portrait; margin: 8mm 10mm; }
+    body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .action-bar { display: none !important; }
+    .page-wrapper { margin: 0; max-width: none; }
+    .page { width: 100%; min-height: auto; padding: 0; box-shadow: none; page-break-after: always; }
+    .field-editable:focus, .sig-editable:focus { background: transparent; }
+    .btn-rm, .btn-add, .dynamic-auth-block .btn-rm { display: none !important; }
+    .dynamic-auth-block { border-top: none; }
+}
