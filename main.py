@@ -997,6 +997,7 @@ def api_cronograma():
                c.nivel,
                c.cnpj_ou_cpf,
                c.ultima_inspecao,
+               c.alvara,
                c.fiscal_matricula,
                cr.quadrimestre,
                cr.mes_previsto
@@ -1389,7 +1390,7 @@ def api_est_por_quadrimestre():
         filtros.append("cr.quadrimestre = %s")
         vals.append(int(quadr))
     if fiscal:
-        filtros.append("cr.fiscal_matricula = %s")
+        filtros.append("c.fiscal_matricula = %s")
         vals.append(fiscal)
     if nivel:
         filtros.append("c.nivel = %s")
@@ -1478,7 +1479,7 @@ def api_est_por_mes():
     vals = [ano, mes]
 
     if fiscal:
-        filtros.append("cr.fiscal_matricula = %s")
+        filtros.append("c.fiscal_matricula = %s")
         vals.append(fiscal)
     if nivel:
         filtros.append("c.nivel = %s")
