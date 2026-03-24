@@ -1389,7 +1389,7 @@ def api_est_por_quadrimestre():
         filtros.append("cr.quadrimestre = %s")
         vals.append(int(quadr))
     if fiscal:
-        filtros.append("cr.fiscal_matricula = %s")
+        filtros.append("c.fiscal_matricula = %s")
         vals.append(fiscal)
     if nivel:
         filtros.append("c.nivel = %s")
@@ -1478,7 +1478,7 @@ def api_est_por_mes():
     vals = [ano, mes]
 
     if fiscal:
-        filtros.append("cr.fiscal_matricula = %s")
+        filtros.append("c.fiscal_matricula = %s")
         vals.append(fiscal)
     if nivel:
         filtros.append("c.nivel = %s")
