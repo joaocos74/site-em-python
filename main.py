@@ -575,6 +575,7 @@ def api_agenda_criar():
     cur.close()
     conn.close()
 
+
     return jsonify({
         "id": novo["id"],
         "dia": novo["dia"].isoformat(),
@@ -582,6 +583,7 @@ def api_agenda_criar():
         "texto": novo["texto"],
         "feito": novo["feito"],
     })
+
 
 @app.route("/api/agenda/<int:postit_id>", methods=["PATCH"])
 def api_agenda_atualizar(postit_id):
