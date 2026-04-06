@@ -74,6 +74,7 @@ function carregarCronograma(){
                                         <th>Nível</th>
                                         <th>Estabelecimento</th>
                                         <th>CNPJ</th>
+                                        <th>Última Inspeção</th>
                                         <th>Mês Previsto</th>
                                         <th>Status</th>
                                     </tr>
@@ -97,14 +98,19 @@ function carregarCronograma(){
                 let status = "A FAZER";
                 let classe = "status-afazer";
 
-                if (
-                    e.ultima_inspecao &&
-                    new Date(e.ultima_inspecao).getFullYear() === ANO_CRONOGRAMA
-                ) {
+                const anoInspecao = e.ultima_inspecao ? new Date(e.ultima_inspecao).getFullYear() : null;
+                const anoAlvara = e.alvara ? new Date(e.alvara).getFullYear() : null;
+
+                // 🔥 REGRA COM PRIORIDADE PARA INSPEÇÃO
+                if (anoInspecao === ANO_CRONOGRAMA) {
+                    status = "REALIZADO";
+                    classe = "status-realizado";
+                } 
+                else if (anoAlvara === ANO_CRONOGRAMA) {
                     status = "REALIZADO";
                     classe = "status-realizado";
                 }
-
+                
                 const tr = document.createElement("tr");
 
                 // Montar select de meses
@@ -127,17 +133,21 @@ function carregarCronograma(){
                 });
 
                 // Montar células
-                tr.innerHTML = `
-                    <td>${e.id}</td>
-                    <td>${e.nivel}</td>
-                    <td style="text-align:left">${e.nome_fantasia}</td>
-                    <td>${e.cnpj_ou_cpf || ""}</td>
-                    <td></td>
-                    <td class="${classe}">${status}</td>
-                `;
+            const dataFormatada = e.ultima_inspecao
+                ? new Date(e.ultima_inspecao).toLocaleDateString("pt-BR")
+                : "-";
 
+            tr.innerHTML = `
+                <td>${e.id}</td>
+                <td>${e.nivel}</td>
+                <td style="text-align:left">${e.nome_fantasia}</td>
+                <td>${e.cnpj_ou_cpf || ""}</td>
+                <td>${dataFormatada}</td>
+                <td></td>
+                <td class="${classe}">${status}</td>
+            `;
                 // Inserir select na 5ª coluna
-                tr.children[4].appendChild(select);
+                tr.children[5].appendChild(select);
 
                 tbody.appendChild(tr);
             });

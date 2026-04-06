@@ -296,9 +296,12 @@ async function editarPostit(id, textoAtual) {
   const novoTexto = prompt("Editar texto:", textoAtual);
   if (!novoTexto) return;
 
+  const mencoes = extrairMencoesPrimeiroNome(novoTexto);
+  const vinculados = resolverPrimeirosNomesParaMatriculas(mencoes);
+
   await api(`/api/agenda/${id}`, {
     method: "PATCH",
-    body: JSON.stringify({ texto: novoTexto })
+    body: JSON.stringify({ texto: novoTexto, vinculados })
   });
 
   await carregar();
