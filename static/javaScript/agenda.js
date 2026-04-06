@@ -58,21 +58,29 @@ function resolverPrimeirosNomesParaMatriculas(primeirosNomes) {
 
   const vinculados = new Set();
   const ambiguos = [];
+  const naoEncontrados = [];
 
   for (const p of primeirosNomes) {
     const mats = mapa.get(p) || [];
     if (mats.length === 1) vinculados.add(mats[0]);
-    if (mats.length > 1) ambiguos.push(p);
+    else if (mats.length > 1) ambiguos.push(p);
+    else naoEncontrados.push(p);
   }
 
-  // Você escolheu primeiro nome; quando for ambíguo, avisamos e não vinculamos.
+  const avisos = [];
   if (ambiguos.length) {
-    alert(
-      "Não consegui vincular: " +
-        ambiguos.map(x => `@${x}`).join(", ") +
-        " (primeiro nome repetido)"
+    avisos.push(
+      "Nome repetido (não vinculado): " +
+        ambiguos.map(x => `@${x}`).join(", ")
     );
   }
+  if (naoEncontrados.length) {
+    avisos.push(
+      "Usuário não encontrado: " +
+        naoEncontrados.map(x => `@${x}`).join(", ")
+    );
+  }
+  if (avisos.length) alert(avisos.join("\n"));
 
   return Array.from(vinculados);
 }

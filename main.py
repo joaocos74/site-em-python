@@ -638,12 +638,34 @@ def api_agenda_atualizar(postit_id):
     """, vals)
 
     up = cur.fetchone()
+
+    if not up:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return jsonify({"error": "post-it não encontrado"}), 404
+
+    # Atualiza vínculos se vinculados foi enviado
+    vinculados = data.get("vinculados")
+    if vinculados is not None:
+        vinculados = set(vinculados)
+        vinculados.add(up["matricula_autor"])  # garante que criador continua vinculado
+
+        cur.execute(
+            "DELETE FROM public.agenda_postits_usuarios WHERE postit_id = %s",
+            (postit_id,)
+        )
+
+        for matricula in vinculados:
+            cur.execute("""
+                INSERT INTO public.agenda_postits_usuarios (postit_id, matricula)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+            """, (postit_id, matricula))
+
     conn.commit()
     cur.close()
     conn.close()
-
-    if not up:
-        return jsonify({"error": "post-it não encontrado"}), 404
 
     return jsonify({
         "id": up["id"],
