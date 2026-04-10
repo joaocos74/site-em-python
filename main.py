@@ -23,6 +23,32 @@ def get_connection():
     return conn
 
 
+def _migrar_data_realizada():
+    """Adiciona coluna data_realizada em cronograma_inspecoes (se não existir)
+    e faz backfill: para cada registro do cronograma cujo cadastro tem
+    ultima_inspecao no mesmo ano, grava essa data em data_realizada."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        ALTER TABLE public.cronograma_inspecoes
+        ADD COLUMN IF NOT EXISTS data_realizada DATE;
+    """)
+    cur.execute("""
+        UPDATE public.cronograma_inspecoes cr
+        SET data_realizada = c.ultima_inspecao
+        FROM public.cadastros c
+        WHERE cr.cadastro_id = c.id
+          AND c.ultima_inspecao IS NOT NULL
+          AND EXTRACT(YEAR FROM c.ultima_inspecao)::int = cr.ano
+          AND cr.data_realizada IS NULL;
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+_migrar_data_realizada()
+
+
 # =========================
 # LOGIN
 # =========================
@@ -390,6 +416,16 @@ def analisar_licenca(licenca_id):
                 request.form.get("rt_uf")
             ))
 
+        # Sincroniza data_realizada no cronograma quando ultima_inspecao é salva
+        nova_inspecao = request.form.get("ultima_inspecao") or None
+        if nova_inspecao:
+            cur.execute("""
+                UPDATE public.cronograma_inspecoes
+                SET data_realizada = %s
+                WHERE cadastro_id = %s
+                  AND ano = EXTRACT(YEAR FROM %s::DATE)::int
+            """, (nova_inspecao, licenca_id, nova_inspecao))
+
         conn.commit()
         cur.close()
         conn.close()
@@ -457,12 +493,24 @@ def novo_cadastro():
         ))
 
         novo = cur.fetchone()
+        novo_id = novo["id"]
+
+        # Sincroniza data_realizada se já veio com ultima_inspecao preenchida
+        nova_inspecao = request.form.get("ultima_inspecao") or None
+        if nova_inspecao:
+            cur.execute("""
+                UPDATE public.cronograma_inspecoes
+                SET data_realizada = %s
+                WHERE cadastro_id = %s
+                  AND ano = EXTRACT(YEAR FROM %s::DATE)::int
+            """, (nova_inspecao, novo_id, nova_inspecao))
+
         conn.commit()
         cur.close()
         conn.close()
 
         # opcional: já abrir a página de edição do registro criado
-        return redirect(f"/licencas/{novo['id']}/analisar")
+        return redirect(f"/licencas/{novo_id}/analisar")
 
     return render_template("analisar_novo_estabelecimento.html")
 
@@ -1354,6 +1402,7 @@ def api_est_por_nivel():
     conn = get_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
+    # total: todos os cadastros com esse nível
     cur.execute(f"""
         SELECT c.nivel, COUNT(*)::int AS total
         FROM public.cadastros c
@@ -1363,16 +1412,19 @@ def api_est_por_nivel():
     """, extra_vals)
     tot = cur.fetchall()
 
+    # feito: inspecionado OU com alvará no ano (mesmo critério do planejamento)
     cur.execute(f"""
         SELECT c.nivel, COUNT(*)::int AS feito
         FROM public.cadastros c
         WHERE c.nivel IS NOT NULL
-          AND c.ultima_inspecao IS NOT NULL
-          AND EXTRACT(YEAR FROM c.ultima_inspecao) = %s
+          AND (
+            EXTRACT(YEAR FROM c.ultima_inspecao) = %s
+            OR EXTRACT(YEAR FROM c.alvara) = %s
+          )
           {extra_sql}
         GROUP BY c.nivel
         ORDER BY c.nivel
-    """, [ano] + extra_vals)
+    """, [ano, ano] + extra_vals)
     fei = cur.fetchall()
 
     cur.close()
@@ -1402,61 +1454,63 @@ def api_est_por_quadrimestre():
     ano = int(request.args.get("ano", date.today().year))
     quadr = request.args.get("quadrimestre")  # 1/2/3 ou vazio
 
-    # filtros base via cadastros, mas fiscal aqui deve ser do CRONOGRAMA também
+    # Mesma lógica do PLANEJAMENTO: LEFT JOIN para incluir cadastros sem cronograma
+    # (sem cronograma → quadrimestre padrão 1, igual ao JS: e.quadrimestre || 1)
     fiscal = request.args.get("fiscal") or ""
     nivel  = request.args.get("nivel") or ""
     classe = request.args.get("classe") or ""
 
-    filtros = ["cr.ano = %s"]
-    vals = [ano]
+    # cr.ano vai no JOIN (não no WHERE) para preservar o LEFT JOIN
+    where_filtros = ["1=1"]
+    where_vals = []
 
-    if quadr:
-        filtros.append("cr.quadrimestre = %s")
-        vals.append(int(quadr))
     if fiscal:
-        filtros.append("c.fiscal_matricula = %s")
-        vals.append(fiscal)
+        where_filtros.append("c.fiscal_matricula = %s")
+        where_vals.append(fiscal)
     if nivel:
-        filtros.append("c.nivel = %s")
-        vals.append(nivel)
+        where_filtros.append("c.nivel = %s")
+        where_vals.append(nivel)
     if classe:
-        filtros.append("c.classe = %s")
-        vals.append(classe)
+        where_filtros.append("c.classe = %s")
+        where_vals.append(classe)
+    if quadr:
+        where_filtros.append("COALESCE(cr.quadrimestre, 1) = %s")
+        where_vals.append(int(quadr))
 
-    where = " AND ".join(filtros)
+    where = " AND ".join(where_filtros)
 
     conn = get_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # total a fazer por quadrimestre
+    # total a fazer: todos os cadastros agrupados pelo quadrimestre do cronograma
+    # (sem cronograma vai para Q1 via COALESCE, igual ao planejamento)
     cur.execute(f"""
-        SELECT cr.quadrimestre::int AS quadrimestre,
+        SELECT COALESCE(cr.quadrimestre, 1)::int AS quadrimestre,
                COUNT(*)::int AS total_a_fazer
-        FROM public.cronograma_inspecoes cr
-        JOIN public.cadastros c ON c.id = cr.cadastro_id
+        FROM public.cadastros c
+        LEFT JOIN public.cronograma_inspecoes cr
+            ON cr.cadastro_id = c.id AND cr.ano = %s
         WHERE {where}
-        GROUP BY cr.quadrimestre
-        ORDER BY cr.quadrimestre
-    """, vals)
+        GROUP BY COALESCE(cr.quadrimestre, 1)
+        ORDER BY quadrimestre
+    """, [ano] + where_vals)
     tot_rows = cur.fetchall()
 
-    # total feito por quadrimestre (inspeção no quadrimestre do ano)
+    # feito: inspecionado OU com alvará no ano (mesmo critério do planejamento)
     cur.execute(f"""
-        SELECT cr.quadrimestre::int AS quadrimestre,
+        SELECT COALESCE(cr.quadrimestre, 1)::int AS quadrimestre,
                COUNT(*)::int AS total_feito
-        FROM public.cronograma_inspecoes cr
-        JOIN public.cadastros c ON c.id = cr.cadastro_id
+        FROM public.cadastros c
+        LEFT JOIN public.cronograma_inspecoes cr
+            ON cr.cadastro_id = c.id AND cr.ano = %s
         WHERE {where}
-          AND c.ultima_inspecao IS NOT NULL
-          AND EXTRACT(YEAR FROM c.ultima_inspecao) = %s
           AND (
-            (cr.quadrimestre = 1 AND EXTRACT(MONTH FROM c.ultima_inspecao) BETWEEN 1 AND 4) OR
-            (cr.quadrimestre = 2 AND EXTRACT(MONTH FROM c.ultima_inspecao) BETWEEN 5 AND 8) OR
-            (cr.quadrimestre = 3 AND EXTRACT(MONTH FROM c.ultima_inspecao) BETWEEN 9 AND 12)
+            EXTRACT(YEAR FROM c.ultima_inspecao) = %s
+            OR EXTRACT(YEAR FROM c.alvara) = %s
           )
-        GROUP BY cr.quadrimestre
-        ORDER BY cr.quadrimestre
-    """, vals + [ano])
+        GROUP BY COALESCE(cr.quadrimestre, 1)
+        ORDER BY quadrimestre
+    """, [ano] + where_vals + [ano, ano])
     fei_rows = cur.fetchall()
 
     cur.close()
@@ -1525,15 +1579,17 @@ def api_est_por_mes():
     """, vals)
     total = cur.fetchone()["total_a_fazer"]
 
+    # feito: inspecionado OU com alvará no mês/ano (mesmo critério do planejamento)
     cur.execute(f"""
         SELECT COUNT(*)::int AS total_feito
         FROM public.cronograma_inspecoes cr
         JOIN public.cadastros c ON c.id = cr.cadastro_id
         WHERE {where}
-          AND c.ultima_inspecao IS NOT NULL
-          AND EXTRACT(YEAR FROM c.ultima_inspecao) = %s
-          AND EXTRACT(MONTH FROM c.ultima_inspecao) = %s
-    """, vals + [ano, mes])
+          AND (
+            (EXTRACT(YEAR FROM c.ultima_inspecao) = %s AND EXTRACT(MONTH FROM c.ultima_inspecao) = %s)
+            OR (EXTRACT(YEAR FROM c.alvara) = %s AND EXTRACT(MONTH FROM c.alvara) = %s)
+          )
+    """, vals + [ano, mes, ano, mes])
     feito = cur.fetchone()["total_feito"]
 
     cur.close()
@@ -1672,7 +1728,119 @@ def abrir_notificacao(id):
         campo_35_matricula_1=cadastro.get("fiscal_matricula"),
         campo_36_cargo_1="Fiscal Sanitário"
     )
-# =========================
+
+@app.route("/auto_termo/<int:id>")
+def abrir_auto_termo(id):
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cur.execute("SELECT * FROM cadastros WHERE id = %s", (id,))
+    cadastro = cur.fetchone()
+
+    cur.execute("SELECT * FROM responsavel WHERE cadastro_id = %s LIMIT 1", (id,))
+    responsavel = cur.fetchone()
+
+    cur.execute("SELECT * FROM responsavel_tecnico WHERE cadastro_id = %s LIMIT 1", (id,))
+    rt = cur.fetchone()
+
+    cur.close()
+    conn.close()
+
+    from datetime import datetime
+    hoje = datetime.now()
+
+    return render_template("auto_termo.html",
+
+        licenca_id=id,
+
+        # 📍 ESTABELECIMENTO
+        campo_01="SRS Montes Claros",
+        campo_02="Taiobeiras",
+        campo_03=id,
+        campo_04=cadastro.get("nome_fantasia"),
+        campo_05=cadastro.get("razao_social"),
+        campo_06=cadastro.get("cnpj_ou_cpf"),
+        campo_07=cadastro.get("insc_municipal", ""),
+        campo_08=cadastro.get("cnae_principal"),
+        campo_09=cadastro.get("endereco"),
+        campo_10=cadastro.get("telefone", ""),
+        campo_11=cadastro.get("cep", "39500-000"),
+        campo_12="Taiobeiras",
+        campo_13="MG",
+
+        # 👤 PROPRIETÁRIO / RESPONSÁVEL
+        campo_14=responsavel.get("nome") if responsavel else "",
+        campo_15=responsavel.get("nacionalidade", "") if responsavel else "",
+        campo_16=responsavel.get("naturalidade", "") if responsavel else "",
+        campo_17=responsavel.get("estado_civil", "") if responsavel else "",
+        campo_18=responsavel.get("rg", "") if responsavel else "",
+        campo_19=responsavel.get("profissao", "") if responsavel else "",
+        campo_20=responsavel.get("cpf") if responsavel else "",
+        campo_21=responsavel.get("endereco") if responsavel else "",
+        campo_22=responsavel.get("telefone") if responsavel else "",
+        campo_23=responsavel.get("cep", "39500-000") if responsavel else "39500-000",
+        campo_24="Taiobeiras",
+        campo_25="MG",
+
+        # 🧪 RESPONSÁVEL TÉCNICO
+        campo_26=rt.get("nome") if rt else "",
+        campo_27=rt.get("registro") if rt else "",
+        campo_28=rt.get("endereco") if rt else "",
+        campo_29=rt.get("telefone") if rt else "",
+        campo_30=rt.get("cep", "39500-000") if rt else "39500-000",
+        campo_31="Taiobeiras",
+        campo_32="MG",
+
+        # 📅 DATA
+        campo_38_dia=hoje.strftime("%d"),
+        campo_38_mes=hoje.strftime("%m"),
+        campo_38_ano=hoje.strftime("%Y"),
+    )
+
+@app.route("/relatorio_alimentacao/<int:id>")
+def abrir_relatorio_alimentacao(id):
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cur.execute("SELECT * FROM cadastros WHERE id = %s", (id,))
+    cadastro = cur.fetchone()
+
+    cur.execute("SELECT * FROM responsavel WHERE cadastro_id = %s LIMIT 1", (id,))
+    responsavel = cur.fetchone()
+
+    cur.close()
+    conn.close()
+
+    from datetime import datetime
+    hoje = datetime.now()
+
+    return render_template("relatorio_alimentacao.html",
+
+        licenca_id=id,
+
+        data_inspecao=hoje.strftime("%d/%m/%Y"),
+        vigi_risco=cadastro.get("vigi_risco", "") if cadastro else "",
+        nome_fantasia=cadastro.get("nome_fantasia", "") if cadastro else "",
+        atividades=cadastro.get("cnae_principal", "") if cadastro else "",
+        endereco=cadastro.get("endereco", "") if cadastro else "",
+        cnpj=cadastro.get("cnpj_ou_cpf", "") if cadastro else "",
+        responsavel_legal=responsavel.get("nome", "") if responsavel else "",
+        cpf_responsavel=responsavel.get("cpf", "") if responsavel else "",
+        tecnico_visa=cadastro.get("fiscal_responsavel", "") if cadastro else "",
+        inspetor_1_nome=cadastro.get("fiscal_responsavel", "") if cadastro else "",
+        inspetor_1_matricula=cadastro.get("fiscal_matricula", "") if cadastro else "",
+        inspetor_2_nome="",
+        inspetor_2_matricula="",
+    )
+
+# ========================= relatórios =========================
+# ========================= relatórios =========================
+
+
+
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=8080, debug=True)
 

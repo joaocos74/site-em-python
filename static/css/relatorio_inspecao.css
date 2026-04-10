@@ -1,0 +1,475 @@
+/* =============================================================
+   relatorio_inspecao.css
+   Relatório de Inspeção Sanitária – Serviços de Alimentação
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Noto Sans', Arial, sans-serif;
+    background: #e8e8e8;
+    color: #000;
+    font-size: 10px;
+    line-height: 1.35;
+}
+
+/* ===== BARRA DE AÇÕES (topo fixo) ===== */
+.action-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: #1a3a5c; color: #fff;
+    padding: 10px 20px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.action-bar button {
+    padding: 7px 20px; border: none; border-radius: 4px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: opacity 0.2s; color: #fff;
+}
+.action-bar button:hover { opacity: 0.85; }
+.btn-salvar   { background: #1565c0; }
+.btn-imprimir { background: #2e7d32; }
+.btn-anexar   { background: #f57c00; }
+
+/* ===== PÁGINA ===== */
+.page-wrapper {
+    margin-top: 55px;
+    padding: 8px;
+    display: flex;
+    justify-content: center;
+}
+
+.page {
+    background: #fff;
+    width: 210mm;
+    min-height: 297mm;
+    padding: 8mm 5mm 10mm 5mm;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+}
+
+/* ===== CABEÇALHO ===== */
+.header {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #000;
+    margin-bottom: 0;
+}
+.header-logo {
+    width: 55px;
+    min-width: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-right: 1px solid #000;
+}
+.header-logo img {
+    max-width: 48px;
+    max-height: 48px;
+}
+.header-text {
+    flex: 1;
+    text-align: center;
+    padding: 4px 6px;
+}
+.header-text h1 { font-size: 10.5px; font-weight: 700; text-transform: uppercase; }
+.header-text h2 { font-size: 9.5px;  font-weight: 600; text-transform: uppercase; }
+.header-text h3 { font-size: 9px;    font-weight: 600; text-transform: uppercase; }
+.header-title {
+    font-size: 10px; font-weight: 700; margin-top: 3px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.auto-termo-box {
+    min-width: 50px;
+    border-left: 1px solid #000;
+    padding: 6px 8px;
+    font-size: 8px;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    line-height: 1.4;
+    align-self: stretch;
+    display: flex; align-items: center; justify-content: center;
+}
+
+/* ===== TABELA DE INFORMAÇÕES DO ESTABELECIMENTO ===== */
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1.5px solid #000;
+    border-top: none;
+    margin-bottom: 0;
+}
+.info-table td {
+    border: 1px solid #000;
+    padding: 3px 5px;
+    vertical-align: top;
+    font-size: 9.5px;
+}
+.info-table .lbl {
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #333;
+    display: block;
+    margin-bottom: 1px;
+}
+.val-input {
+    width: 100%;
+    font-size: 9.5px;
+    font-family: inherit;
+    border: none;
+    border-bottom: 1px solid #bbb;
+    background: transparent;
+    outline: none;
+    padding: 1px 2px;
+    color: #000;
+}
+.val-input:focus {
+    border-bottom-color: #1565c0;
+    background: #f0f6ff;
+}
+.val-textarea {
+    width: 100%;
+    min-height: 52px;
+    font-size: 9px;
+    font-family: inherit;
+    border: none;
+    border-bottom: 1px solid #bbb;
+    background: transparent;
+    outline: none;
+    padding: 2px;
+    resize: vertical;
+    color: #000;
+}
+.val-textarea:focus {
+    border-bottom-color: #1565c0;
+    background: #f0f6ff;
+}
+.info-table label {
+    font-size: 8.5px;
+    margin-right: 6px;
+    white-space: nowrap;
+}
+.info-table input[type="checkbox"] { margin-right: 2px; }
+
+/* ===== LEGENDA ===== */
+.legenda {
+    font-size: 8.5px;
+    border: 1px solid #000;
+    border-top: none;
+    padding: 3px 5px;
+    background: #f5f5f5;
+    margin-bottom: 0;
+}
+
+/* ===== CHECKLIST ===== */
+.checklist {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1.5px solid #000;
+    border-top: none;
+    margin-bottom: 0;
+}
+.checklist th,
+.checklist td {
+    border: 1px solid #555;
+    padding: 2px 3px;
+    vertical-align: middle;
+    font-size: 8.5px;
+}
+.checklist th {
+    background: #d0d8e8;
+    font-weight: 700;
+    text-align: center;
+    font-size: 8px;
+    text-transform: uppercase;
+}
+
+/* Larguras das colunas */
+.col-num  { width: 22px;  text-align: center; font-weight: 700; }
+.col-cl   { width: 22px;  text-align: center; }
+.col-s    { width: 18px;  text-align: center; }
+.col-n    { width: 18px;  text-align: center; }
+.col-na   { width: 22px;  text-align: center; }
+.col-leg  { width: 110px; font-size: 7.5px; line-height: 1.3; }
+
+.checklist input[type="radio"] {
+    width: 12px; height: 12px;
+    cursor: pointer;
+    accent-color: #1565c0;
+}
+
+/* Linhas alternadas */
+.checklist tr.row-alt td { background: #f0f4fb; }
+
+/* Linha de seção (subtítulo) */
+.checklist tr.section-row td {
+    background: #cdd6e8;
+    color: #000;
+    font-weight: 700;
+    font-size: 8.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 3px 5px;
+    text-align: left;
+    border-color: #888;
+}
+
+/* Cabeçalho duplo (área de venda / manipulação) */
+.col-dual table { width: 100%; border-collapse: collapse; }
+.col-dual table td {
+    width: 50%;
+    border: none;
+    border-right: 1px dashed #aaa;
+    padding: 2px 4px;
+    font-size: 8px;
+    vertical-align: top;
+}
+.col-dual table td:last-child { border-right: none; }
+
+/* ===== CONTADOR DE NÃO CONFORMIDADES ===== */
+.counter-bar {
+    border: 1.5px solid #000;
+    border-top: none;
+    padding: 4px 8px;
+    font-size: 9px;
+    font-weight: 700;
+    background: #fff8e1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.nc-badge {
+    display: inline-block;
+    min-width: 24px;
+    text-align: center;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 10px;
+}
+.nc-total { background: #d6d6d6; color: #000; border: 1px solid #666; }
+.nc-c     { background: #ffc8c8; color: #000; border: 1px solid #999; }
+.nc-ma    { background: #ffddb8; color: #000; border: 1px solid #999; }
+.nc-o     { background: #c5d9f5; color: #000; border: 1px solid #999; }
+
+/* ===== CONCLUSÃO ===== */
+.conclusao {
+    border: 1.5px solid #000;
+    border-top: none;
+    padding: 6px 8px;
+    font-size: 9px;
+    line-height: 1.7;
+    background: #fff;
+}
+.conclusao label { margin: 0 10px 0 0; font-size: 9px; }
+.conclusao input[type="radio"] { margin-right: 3px; accent-color: #1565c0; }
+.campo-auto {
+    width: 35px;
+    border: none;
+    border-bottom: 1.5px solid #555;
+    text-align: center;
+    font-weight: 700;
+    font-size: 9px;
+    background: transparent;
+}
+
+/* ===== TABELA DE OBSERVAÇÕES ===== */
+.obs-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1.5px solid #000;
+    border-top: none;
+    margin-top: 6px;
+}
+.obs-table th {
+    background: #cdd6e8;
+    color: #000;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 3px 5px;
+    text-align: left;
+    border: 1px solid #000;
+}
+.obs-table td {
+    border: 1px solid #555;
+    padding: 1px 3px;
+    vertical-align: middle;
+}
+.campo-obs {
+    width: 100%;
+    border: none;
+    font-size: 9px;
+    font-family: inherit;
+    background: transparent;
+    outline: none;
+    padding: 2px;
+}
+.campo-obs-texto {
+    display: block;
+    resize: none;
+    overflow: hidden;
+    min-height: 20px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.col-acoes { width: 30px; text-align: center; }
+
+/* ===== CHECKBOXES E CAMPOS INLINE (gerados por JS) ===== */
+.cb-inline {
+    width: 11px;
+    height: 11px;
+    margin: 0 2px 0 0;
+    vertical-align: middle;
+    cursor: pointer;
+    accent-color: #1565c0;
+}
+.inline-field {
+    border: none;
+    border-bottom: 1px solid #777;
+    background: transparent;
+    font-size: 8.5px;
+    font-family: inherit;
+    outline: none;
+    padding: 0 2px;
+    min-width: 40px;
+    width: 40px;
+    vertical-align: baseline;
+    color: #000;
+}
+.inline-field:focus {
+    border-bottom-color: #1565c0;
+    background: #f0f6ff;
+}
+
+@media print {
+    .cb-inline { accent-color: #000; }
+    .inline-field {
+        border: none !important;
+        border-bottom: 1px solid #000 !important;
+        background: transparent !important;
+    }
+}
+
+/* ===== BOTÃO ADICIONAR ===== */
+.btn-add {
+    margin-top: 3px;
+    padding: 3px 10px;
+    font-size: 8.5px;
+    background: #1a3a5c;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.btn-add:hover { background: #2a5a8c; }
+
+/* ===== UPLOAD DE ARQUIVOS ===== */
+.upload-section {
+    border: 1.5px solid #000;
+    border-top: none;
+    padding: 6px 8px;
+    margin-top: 6px;
+}
+.upload-section h4 { font-size: 9px; font-weight: 700; margin-bottom: 4px; }
+.upload-drop {
+    border: 1.5px dashed #888;
+    padding: 10px;
+    text-align: center;
+    font-size: 9px;
+    color: #555;
+    background: #fafafa;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.upload-drop:hover { background: #f0f4fb; }
+.upload-drop input[type="file"] { display: none; }
+.upload-list { margin-top: 5px; font-size: 8.5px; }
+.upload-list div { padding: 2px 0; border-bottom: 1px solid #eee; }
+
+/* ===== EQUIPE INSPETORA ===== */
+.equipe-titulo {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    background: #cdd6e8; color: #000;
+    padding: 3px 6px;
+    border: 1.5px solid #000;
+    border-top: none;
+    margin-top: 6px;
+}
+.equipe-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1.5px solid #000;
+    border-top: none;
+}
+.equipe-table th {
+    background: #d0d8e8;
+    font-size: 8px; font-weight: 700; text-transform: uppercase;
+    padding: 3px 5px; border: 1px solid #555; text-align: left;
+}
+.equipe-table td {
+    border: 1px solid #555;
+    padding: 1px 3px;
+    vertical-align: bottom;
+    font-size: 9px;
+    height: 40px;
+}
+
+/* ===== ENTREGA / ASSINATURA ===== */
+.entrega-titulo {
+    font-size: 8.5px; font-weight: 700; text-transform: uppercase;
+    border: 1.5px solid #000; border-top: none;
+    padding: 3px 6px; background: #f5f5f5;
+    margin-top: 6px;
+}
+.entrega-linha {
+    font-size: 9px;
+    border: 1px solid #000; border-top: none;
+    padding: 4px 8px;
+    min-height: 45px;
+    display: flex;
+    align-items: flex-end;
+}
+.assinatura-final {
+    text-align: center;
+    font-size: 9px;
+    margin-top: 30px;
+    padding-top: 4px;
+}
+.assinatura-final-line {
+    border-top: 1.5px solid #000;
+    width: 220px;
+    margin: 0 auto 4px auto;
+}
+
+/* ===== IMPRESSÃO ===== */
+@page {
+    size: A4 portrait;
+    margin: 6mm 5mm;
+}
+
+@media print {
+    .action-bar, .btn-add, .upload-section, .col-acoes { display: none !important; }
+    body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page-wrapper { margin-top: 0; padding: 0; }
+    .page { box-shadow: none; padding: 6mm 5mm; }
+    .checklist, .info-table, .obs-table, .equipe-table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+    .val-input, .val-textarea, .campo-obs, .campo-auto {
+        border: none !important;
+        background: transparent !important;
+    }
+    /* Garante texto preto em todos os cabeçalhos e seções */
+    .checklist th,
+    .checklist tr.section-row td,
+    .obs-table th,
+    .equipe-titulo,
+    .equipe-table th {
+        color: #000 !important;
+    }
+}

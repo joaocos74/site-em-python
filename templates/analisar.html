@@ -301,8 +301,12 @@
                     <!-- BOTÕES -->
                     <div class="document-actions">
 
-                        <a href="/licencas/{{ licenca.id }}/auto" class="btn btn-primary">
+                        <a href="/auto_termo/{{ licenca.id }}" class="btn btn-primary">
                             Gerar Auto/Termo
+                        </a>
+
+                        <a href="/relatorio_alimentacao/{{ licenca.id }}" class="btn btn-primary">
+                            Relatório de Alimentação
                         </a>
 
                         <button type="button" onclick="gerarNotificacao({{ licenca.id }})" class="btn btn-primary">

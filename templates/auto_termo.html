@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTO / TERMO</title>
+    <link rel="stylesheet" href="/static/css/documentos.css">
+</head>
+<body>
+
+<!-- BARRA DE AÇÕES -->
+<div class="action-bar">
+    <button class="btn-salvar" onclick="salvarAutoTermo()">Salvar</button>
+    <button class="btn-imprimir" onclick="window.print()">Imprimir</button>
+    <button class="btn-add-auth" onclick="adicionarAutoridadeAssinatura()">+ Autoridade Sanitária</button>
+</div>
+
+<div class="page-wrapper" data-cadastro-id="{{ licenca_id or 0 }}">
+<div class="page">
+
+    <!-- CABEÇALHO -->
+    <div class="doc-header">
+        <div class="doc-header__logo">
+            <img src="{{ url_for('static', filename='img/brasao_taiobeiras.png') }}" alt="Brasão" onerror="this.style.display='none'">
+        </div>
+        <div class="doc-header__text">
+            <h1>Prefeitura Municipal de Taiobeiras/MG</h1>
+            <h2>Secretaria Municipal de Saúde</h2>
+            <h3>Vigilância Sanitária</h3>
+            <h4>AUTO / TERMO</h4>
+        </div>
+    </div>
+
+    <!-- TABELA PRINCIPAL -->
+    <table class="form-table">
+        <!-- SRS / Município / Número -->
+        <tr>
+            <td class="section-label" rowspan="6">ESTABELECIMENTO</td>
+            <td colspan="5"><span class="field-label">01. SUPERINTENDÊNCIA REGIONAL DE SAÚDE</span><span class="field-value">{{ campo_01 or '' }}</span></td>
+            <td colspan="4"><span class="field-label">02. MUNICÍPIO</span><span class="field-value">{{ campo_02 or '' }}</span></td>
+            <td colspan="3"><span class="field-label">03. NÚMERO</span><span class="field-value">{{ campo_03 or '' }}</span></td>
+        </tr>
+        <tr><td colspan="12"><span class="field-label">04. NOME</span><span class="field-value">{{ campo_04 or '' }}</span></td></tr>
+        <tr>
+            <td colspan="9"><span class="field-label">05. RAZÃO SOCIAL</span><span class="field-value">{{ campo_05 or '' }}</span></td>
+            <td colspan="3"><span class="field-label">06. CNPJ</span><span class="field-value">{{ campo_06 or '' }}</span></td>
+        </tr>
+        <tr>
+            <td colspan="4"><span class="field-label">07. INSC. MUNICIPAL</span><span class="field-value">{{ campo_07 or '' }}</span></td>
+            <td colspan="8"><span class="field-label">08. ATIVIDADE</span><span class="field-value">{{ campo_08 or '' }}</span></td>
+        </tr>
+        <tr><td colspan="12"><span class="field-label">09. ENDEREÇO (AV, RUA, Nº, BAIRRO)</span><span class="field-value">{{ campo_09 or '' }}</span></td></tr>
+        <tr>
+            <td colspan="2"><span class="field-label">10. FONE</span><span class="field-value">{{ campo_10 or '' }}</span></td>
+            <td colspan="3"><span class="field-label">11. CEP</span><span class="field-value">{{ campo_11 or '' }}</span></td>
+            <td colspan="5"><span class="field-label">12. MUNICÍPIO/LOCALIDADE</span><span class="field-value">{{ campo_12 or '' }}</span></td>
+            <td colspan="2"><span class="field-label">13. UF</span><span class="field-value">{{ campo_13 or '' }}</span></td>
+        </tr>
+
+        <!-- PROPRIETÁRIO -->
+        <tr>
+            <td class="section-label" rowspan="5">PROPRIETÁRIO/<br>RESPONSÁVEL</td>
+            <td colspan="8"><span class="field-label">14. NOME</span><span class="field-value">{{ campo_14 or '' }}</span></td>
+            <td colspan="4"><span class="field-label">15. NACIONALIDADE</span><span class="field-value">{{ campo_15 or '' }}</span></td>
+        </tr>
+        <tr>
+            <td colspan="4"><span class="field-label">16. NATURALIDADE</span><span class="field-value">{{ campo_16 or '' }}</span></td>
+            <td colspan="4"><span class="field-label">17. ESTADO CIVIL</span><span class="field-value">{{ campo_17 or '' }}</span></td>
+            <td colspan="4"><span class="field-label">18. IDENTIDADE</span><span class="field-value">{{ campo_18 or '' }}</span></td>
+        </tr>
+        <tr>
+            <td colspan="8"><span class="field-label">19. PROFISSÃO</span><span class="field-value">{{ campo_19 or '' }}</span></td>
+            <td colspan="4"><span class="field-label">20. C.P.F.</span><span class="field-value">{{ campo_20 or '' }}</span></td>
+        </tr>
+        <tr><td colspan="12"><span class="field-label">21. ENDEREÇO (AV, RUA, Nº, BAIRRO)</span><span class="field-value">{{ campo_21 or '' }}</span></td></tr>
+        <tr>
+            <td colspan="2"><span class="field-label">22. FONE</span><span class="field-value">{{ campo_22 or '' }}</span></td>
+            <td colspan="3"><span class="field-label">23. CEP</span><span class="field-value">{{ campo_23 or '' }}</span></td>
+            <td colspan="5"><span class="field-label">24. MUNICÍPIO/LOCALIDADE</span><span class="field-value">{{ campo_24 or '' }}</span></td>
+            <td colspan="2"><span class="field-label">25. UF</span><span class="field-value">{{ campo_25 or '' }}</span></td>
+        </tr>
+
+        <!-- RESPONSÁVEL TÉCNICO -->
+        <tr>
+            <td class="section-label" rowspan="3">RESPONSÁVEL<br>TÉCNICO</td>
+            <td colspan="7"><span class="field-label">26. NOME</span><span class="field-value">{{ campo_26 or '' }}</span></td>
+            <td colspan="5"><span class="field-label">27. INSCRIÇÃO</span><span class="field-value">{{ campo_27 or '' }}</span></td>
+        </tr>
+        <tr><td colspan="12"><span class="field-label">28. ENDEREÇO (AV, RUA, Nº, BAIRRO)</span><span class="field-value">{{ campo_28 or '' }}</span></td></tr>
+        <tr>
+            <td colspan="2"><span class="field-label">29. FONE</span><span class="field-value">{{ campo_29 or '' }}</span></td>
+            <td colspan="3"><span class="field-label">30. CEP</span><span class="field-value">{{ campo_30 or '' }}</span></td>
+            <td colspan="5"><span class="field-label">31. MUNICÍPIO/LOCALIDADE</span><span class="field-value">{{ campo_31 or '' }}</span></td>
+            <td colspan="2"><span class="field-label">32. UF</span><span class="field-value">{{ campo_32 or '' }}</span></td>
+        </tr>
+    </table>
+
+    <!-- CAMPO 33 - EDITÁVEL -->
+    <table class="section-box"><tr><td>
+        <span class="field-label">33. COM BASE (INCISO – ARTIGO – LEI – PORTARIA)</span>
+        <textarea class="field-editable" rows="2" name="campo_33" style="width:100%;margin-top:2px;">{{ campo_33 or 'Lei 8.078/1990 – Código de Proteção e Defesa do Consumidor; Lei Estadual 13.317/99 - Código de Saúde do Estado de Minas Gerais;' }}</textarea>
+    </td></tr></table>
+
+
+    <!-- CAMPOS 34/35 -->
+    <table class="auto-termo-grid">
+        <tr>
+            <td>
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                    <span class="field-label">34.</span>
+                    <span class="checkbox-area"><input type="checkbox" name="chk_auto"></span>
+                    <span class="field-label">AUTO DE</span>
+                    <span class="field-value" style="flex:1;border-bottom:1px solid #000;">{{ campo_34_tipo or '' }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="width:22px;"></span>
+                    <span class="checkbox-area"><input type="checkbox" name="chk_fato"></span>
+                    <span class="field-label">PELO FATO DE</span>
+                    <span class="field-value" style="flex:1;border-bottom:1px solid #000;">{{ campo_34_fato or '' }}</span>
+                </div>
+            </td>
+            <td>
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                    <span class="field-label">35.</span>
+                    <span class="checkbox-area"><input type="checkbox" name="chk_termo"></span>
+                    <span class="field-label">TERMO DE <u>INSPEÇÃO</u></span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="width:22px;"></span>
+                    <span class="checkbox-area"><input type="checkbox" name="chk_estab"></span>
+                    <span class="field-label">ATRAVÉS DO QUAL FICA <u>O ESTABELECIMENTO</u></span>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- CAMPO 36 - EDITÁVEL -->
+    <div class="section-full">
+        <span class="field-label">36.</span>
+        <textarea class="field-editable" rows="3" name="campo_36" style="width:100%;margin-top:2px;">{{ campo_36 or 'Acima qualificado na pessoa de seu responsável legal e ou técnico, ciente da inspeção sanitária para verificar o cumprimento das Boas Práticas em ____________ de acordo com a Lei Estadual 13.317/99, com vista à renovação do alvará sanitário. Será elaborado relatório técnico para ciência e adequações.' }}</textarea>
+    </div>
+
+        <!-- CAMPO 37 -->
+    <div class="section-full">
+        <span class="field-label">37. O INFRATOR ESTARÁ SUJEITO A PENA DE:</span>
+        <textarea class="field-editable" rows="2" name="campo_37" style="width:100%;margin-top:2px;">{{ campo_37 or '' }}</textarea>
+    </div>
+
+
+    <!-- CAMPO 38 - ASSINATURAS -->
+    <div class="section-signatures">
+        <span class="field-label" style="margin-bottom:8px;display:block;">38.</span>
+
+        <div class="sig-row">
+            <div class="sig-col"><div class="sig-editable" contenteditable="true">{{ campo_38_funcao_1 or '' }}</div><span class="sig-label">AUTORIDADE SANITÁRIA</span></div>
+            <div class="sig-col"><div class="sig-editable" contenteditable="true">{{ campo_38_funcao_1 or 'Autoridade Sanitária' }}</div><span class="sig-label">FUNÇÃO</span></div>
+            <div class="sig-col"><div class="sig-line"></div><span class="sig-label">ASSINATURA</span></div>
+        </div>
+
+        <div class="sig-row">
+            <div class="sig-col"><div class="sig-editable" contenteditable="true">{{ campo_38_funcao_1 or '' }}</div><span class="sig-label">AUTORIDADE SANITÁRIA</span></div>
+            <div class="sig-col"><div class="sig-editable" contenteditable="true">{{ campo_38_funcao_2 or 'Autoridade Sanitária' }}</div><span class="sig-label">FUNÇÃO</span></div>
+            <div class="sig-col"><div class="sig-line"></div><span class="sig-label">ASSINATURA</span></div>
+        </div>
+
+        <div id="extra-authorities"></div>
+
+        <div class="date-row">
+            <div class="date-col date-col--data">
+                <div style="display:flex;align-items:baseline;gap:2px;">
+                    <span style="font-size:11px;">Taiobeiras,</span>
+                    <span class="field-value" style="border-bottom:1px solid #000;min-width:30px;text-align:center;">{{ campo_38_dia or '' }}</span><span>/</span>
+                    <span class="field-value" style="border-bottom:1px solid #000;min-width:30px;text-align:center;">{{ campo_38_mes or '' }}</span><span>/</span>
+                    <span class="field-value" style="border-bottom:1px solid #000;min-width:50px;text-align:center;">{{ campo_38_ano or '' }}</span>
+                </div>
+                <span class="sig-label">DATA/LOCAL</span>
+            </div>
+            <div class="date-col date-col--hora"><div class="sig-line"></div><span class="sig-label">HORA</span></div>
+            <div class="date-col date-col--sig"><div class="sig-line"></div><span class="sig-label">ASSINATURA DA PESSOA CONTACTADA</span></div>
+        </div>
+    </div>
+
+    <!-- RODAPÉ -->
+    <div class="doc-footer">
+        Vigilância Sanitária – Praça 13 de maio, 85 – Centro – Fone: (38) 3845-3970<br>
+        visataiobeiras@gmail.com
+    </div>
+
+</div>
+</div>
+
+<script src="/static/js/documentos.js"></script>
+</body>
+</html>
