@@ -46,6 +46,11 @@ function extrairMencoesPrimeiroNome(texto) {
 }
 
 function resolverPrimeirosNomesParaMatriculas(primeirosNomes) {
+  // @todos vincula todos os usuários de uma vez
+  if (primeirosNomes.includes("todos")) {
+    return usuariosDisponiveis.map(u => String(u.matricula));
+  }
+
   const mapa = new Map(); // primeiroNomeNorm -> [matriculas]
 
   for (const u of usuariosDisponiveis) {
